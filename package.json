@@ -1,0 +1,34 @@
+{
+	"name": "formix",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gduke3/formix.git"
+	},
+	"keywords": [],
+	"author": "gduke3",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/gduke3/formix/issues"
+	},
+	"homepage": "https://github.com/gduke3/formix#readme",
+	"peerDependencies": {
+		"mobx": "^6.3.13",
+		"mobx-react-lite": "^3.2.3",
+		"react": "^17.0.2"
+	},
+	"devDependencies": {
+		"parcel": "^2.3.1",
+		"ts-toolbelt": "^9.6.0",
+		"typescript": "^4.5.5"
+	},
+	"dependencies": {
+		"@types/react": "^17.0.39",
+		"fastest-validator": "^1.12.0"
+	}
+}
