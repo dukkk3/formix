@@ -1,28 +1,27 @@
-import { useCallback, useEffect } from "react";
-import { formSchema, aliasSchema, fieldSchema, useFormix } from "@core";
-import { Schema } from "@core/types";
-// import { formSchema, fieldSchema, Field } from "@react-hoox/formix";
+import { useEffect } from "react";
+import { formSchema, fieldSchema, useFormix } from "@core";
 
-const alias = aliasSchema(({ input, select, textArea }) => ({
-	$input: input,
-	$select: select,
-	$textArea: textArea,
-}));
+const schema = formSchema({
+	surname: fieldSchema({ as: "textArea", rules: "", defaultValue: "", props: {} }),
+});
 
-const schema = formSchema(
-	({ fieldSchema: customFieldSchema }) => ({
-		insurer: {
-			hello: customFieldSchema({ as: "$input" }),
-			world: fieldSchema({ as: "input" }),
-		},
-	}),
-	alias
-);
+const Ex = () => {
+	const formix = useFormix(({ fieldSchema }) => ({
+		name: fieldSchema({ as: "textArea" }),
+		surname: fieldSchema({ as: "input" }),
+	}));
 
-// const bind = createBind({
-// 	// TODO: Решитеь это поведение. Опционально
-// 	hello: fieldSchema({ as: "input" }),
-// });
+	useEffect(() => {
+		if (formix.validate("name")) {
+			formix.setProps("surname", (prevProps) => ({ ...prevProps, hello: true }));
+			formix.setProps("name", (prevProps) => ({ ...prevProps }));
+		}
+
+		if (formix.validate("name")) {
+			formix.$("name").setProps({ hidden: true });
+		}
+	}, [formix]);
+};
 
 // const Example = () => {
 // 	return (

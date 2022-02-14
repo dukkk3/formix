@@ -1,2 +1,2 @@
-export { aliasSchema, formSchema, fieldSchema } from "./helpers";
-export { useFormix, useField } from "@core/hooks";
+export { formSchema, fieldSchema } from "./helpers";
+export { useFormix } from "@core/hooks";

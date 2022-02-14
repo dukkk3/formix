@@ -1,62 +1,59 @@
 import { deepObjectEntries } from "@core/utils";
 import {
-	NATIVE_ALIAS,
-	ALIAS_IDENTIFIER_KEY,
 	FORM_SCHEMA_IDENTIFIER_KEY,
 	FIELD_SCHEMA_IDENTIFIER_KEY,
+	FIELD_SCHEMA_FIELDS_IDENTIFIER_KEY,
+	FIELD_SCHEMA_GROUPS_IDENTIFIER_KEY,
 } from "@core/config";
-import type { Alias, Schema, SchemaBase } from "@core/types";
+import type { Alias, Schema, SchemaBase, SchemaFormKind } from "@core/types";
 
-const FIELD_SCHEMA_SYMBOL = Symbol();
-const FORM_SCHEMA_SYMBOL = Symbol();
-
-export function aliasSchema<T extends Alias.Base>(
-	alias: ((nativeAlias: Alias.Native) => Readonly<T>) | Readonly<T>
-) {
-	return typeof alias === "function" ? alias({ ...NATIVE_ALIAS }) : alias;
+function isFieldSchema(value: any) {
+	return typeof value === "object" && value[FIELD_SCHEMA_IDENTIFIER_KEY];
 }
 
-export function fieldSchema<
-	T extends Alias.Base = Alias.Native,
-	C extends keyof T = keyof Alias.Native
->(base: SchemaBase.Field<T, C>, alias: T = NATIVE_ALIAS as unknown as T): Schema.Field<T, C> {
+export function fieldSchema<T extends keyof Alias>(base: SchemaBase.Field<T>): Schema.Field<T> {
 	return {
 		...base,
-		// @ts-ignore
-		[ALIAS_IDENTIFIER_KEY]: alias,
-		[FIELD_SCHEMA_IDENTIFIER_KEY]: FIELD_SCHEMA_SYMBOL,
-	};
+		props: base.props || ({} as any),
+		[FIELD_SCHEMA_IDENTIFIER_KEY]: true,
+	} as Schema.Field<T>;
 }
 
-type FormSchemaBase<T extends SchemaBase.Form, C extends Alias.Base = Alias.Native> =
-	| ((helpers: {
-			fieldSchema: <H extends keyof C>(base: SchemaBase.Field<C, H>) => Schema.Field<C, H>;
-	  }) => T)
-	| T;
-
-export function formSchema<T extends SchemaBase.Form, C extends Alias.Base = Alias.Native>(
-	base: FormSchemaBase<T, C>,
-	alias?: C
+export function formSchema<T extends SchemaBase.Form>(
+	base: SchemaFormKind<T> | T
 ): () => Schema.Form<T> {
-	const pickedBase =
-		typeof base === "function" ? base({ fieldSchema: (base) => fieldSchema(base, alias) }) : base;
+	const pickedBase = typeof base === "function" ? base({ fieldSchema: fieldSchema as any }) : base;
 
-	if (
-		pickedBase[FORM_SCHEMA_IDENTIFIER_KEY] &&
-		(pickedBase[FORM_SCHEMA_IDENTIFIER_KEY] as any) === FORM_SCHEMA_SYMBOL
-	) {
+	if (pickedBase[FORM_SCHEMA_IDENTIFIER_KEY]) {
 		return () => pickedBase as unknown as Schema.Form<T>;
 	}
 
+	const entries = deepObjectEntries(pickedBase, (_, value) => !isFieldSchema(value));
+
+	const compiledSchemas = entries.filter(([_, value]) => isFieldSchema(value));
+	const primitivesSchemas = entries
+		.filter(([_, value]) => ["string", "boolean"].includes(typeof value))
+		.map(([key, value]) => [key, fieldSchema({ ...({ defaultValue: value } as any) })]);
+
+	const fieldSchemas = [...compiledSchemas, ...primitivesSchemas];
+	const groups = entries
+		.filter(([key]) => fieldSchemas.every(([targetKey]) => key !== targetKey))
+		.map(([key]) => [
+			key,
+			fieldSchemas.filter(([targetKey]) => (targetKey as string).includes(key)).map(([key]) => key),
+		]);
+
 	return () =>
 		({
-			...deepObjectEntries(pickedBase).filter(
-				([_, value]) =>
-					typeof value === "object" &&
-					value[FIELD_SCHEMA_IDENTIFIER_KEY] &&
-					value[FIELD_SCHEMA_IDENTIFIER_KEY] === FORM_SCHEMA_SYMBOL
+			[FIELD_SCHEMA_IDENTIFIER_KEY]: true,
+			[FIELD_SCHEMA_FIELDS_IDENTIFIER_KEY]: [...compiledSchemas, ...primitivesSchemas].reduce(
+				(acc, [key, value]) => ({ ...acc, [key as string]: value }),
+				{} as any
 			),
-			[FORM_SCHEMA_IDENTIFIER_KEY]: FORM_SCHEMA_SYMBOL,
+			[FIELD_SCHEMA_GROUPS_IDENTIFIER_KEY]: groups.reduce(
+				(acc, [key, value]) => ({ ...acc, [`${key as string}.*`]: value }),
+				{} as any
+			),
 		} as any);
 }
 

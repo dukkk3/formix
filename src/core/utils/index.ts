@@ -1,4 +1,7 @@
-export function deepObjectEntries<T extends Record<string, any>>(object: T) {
+export function deepObjectEntries<T extends Record<string, any>>(
+	object: T,
+	conditionFn?: (key: string, value: any) => boolean
+) {
 	const entries: [key: string, value: any][] = [];
 	const keys = Object.keys(object);
 
@@ -7,8 +10,8 @@ export function deepObjectEntries<T extends Record<string, any>>(object: T) {
 
 		entries.push([key, value]);
 
-		if (typeof value === "object") {
-			const subEntires = deepObjectEntries(value);
+		if (typeof value === "object" && (!conditionFn || conditionFn(key, value))) {
+			const subEntires = deepObjectEntries(value, conditionFn);
 
 			entries.push(...subEntires.map(([entryKey, value]) => [`${key}.${entryKey}`, value] as any));
 		}
