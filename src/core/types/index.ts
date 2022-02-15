@@ -17,6 +17,7 @@ export declare namespace SchemaBase {
 	export type Field<T extends keyof Alias> = {
 		as: T;
 		defaultValue: string | boolean;
+		customRules: any;
 		props: Alias[T] extends React.FC<infer R> ? R : any;
 		rules: ValidationRuleObject | string;
 	};
@@ -46,13 +47,42 @@ export declare namespace Primitives {
 	export type FormSchema = Schema.Field<any> | boolean | string;
 }
 
+export interface UseFormix<
+	T extends SchemaBase.Form,
+	F extends Schema.Form<T> = Schema.Form<T>,
+	TF extends F[FieldSchemaFieldsKey] = F[FieldSchemaFieldsKey],
+	TG extends F[FieldSchemaGroupsKey] = F[FieldSchemaGroupsKey],
+	TFK extends keyof TF = keyof TF,
+	TGK extends keyof TG = keyof TG
+> {
+	setProps: <N extends TFK, P extends TF[N]["props"]>(
+		name: N,
+		props: ((prevProps: Partial<P>) => Partial<P>) | Partial<P>
+	) => void;
+	setProp: <N extends TFK, P extends TF[N]["props"], PK extends keyof P>(
+		name: N,
+		propName: PK,
+		value: ((prevValue: P[PK]) => P[PK]) | P[PK]
+	) => void;
+	setValue: <N extends TFK>(name: N, value: string | boolean) => void;
+	getValue: <N extends TFK>(name: N) => string | boolean;
+	getError: <N extends TFK>(name: N) => string;
+	getValues: () => Record<TFK, string | boolean>;
+	getErrors: () => Record<TFK, string>;
+	$: <N extends TFK>(
+		name: N
+	) => {
+		[K in keyof Omit<UseFormix<T, F, TF, TG, N, TGK>, "$" | "getValues" | "getErrors">]: (
+			...params: Pop<Parameters<UseFormix<T, F, TF, TG, N, TGK>[K]>>
+		) => ReturnType<UseFormix<T, F, TF, TG, N, TGK>[K]>;
+	};
+}
+
+type Pop<T extends any[]> = T extends [infer R, ...infer Tail] ? Tail : never;
+
 export type Alias = typeof NATIVE_ALIAS;
 
-export type SchemaFormKind<T extends SchemaBase.Form> =
-	| (() => T)
-	| ((helpers: {
-			fieldSchema: <N extends keyof Alias>(base: Partial<SchemaBase.Field<N>>) => Schema.Field<N>;
-	  }) => T);
+export type SchemaFormKind<T extends SchemaBase.Form> = T | object;
 
 export declare namespace Utils {
 	type Prev = [never, 0, 1, 2, 3, 4, 5, 6, ...0[]];

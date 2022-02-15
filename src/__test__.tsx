@@ -1,26 +1,61 @@
 import { useEffect } from "react";
-import { formSchema, fieldSchema, useFormix } from "@core";
+import { formSchema, fieldSchema, useFormix, Field } from "@core";
+
+import { Form } from "@components/Form";
 
 const schema = formSchema({
 	surname: fieldSchema({ as: "textArea", rules: "", defaultValue: "", props: {} }),
 });
 
 const Ex = () => {
-	const formix = useFormix(({ fieldSchema }) => ({
+	const formix = useFormix({
 		name: fieldSchema({ as: "textArea" }),
 		surname: fieldSchema({ as: "input" }),
-	}));
+	});
 
 	useEffect(() => {
-		if (formix.validate("name")) {
+		formix.setProp("surname", "hello", true);
+		formix.$("surname").setProp("hello", true);
+
+		// formix.validate("name.*")
+
+		if (true) {
 			formix.setProps("surname", (prevProps) => ({ ...prevProps, hello: true }));
 			formix.setProps("name", (prevProps) => ({ ...prevProps }));
-		}
-
-		if (formix.validate("name")) {
-			formix.$("name").setProps({ hidden: true });
+			formix.$("surname").setProp("hello", true);
 		}
 	}, [formix]);
+
+	return (
+		<Form schema={{ firstname: "" }}>
+			{({ $, setProp }) => (
+				<>
+					<input onChange={() => $("firstname").setProp("hello", true)} />
+				</>
+			)}
+		</Form>
+	);
+};
+
+const Ex2 = () => {
+	return (
+		<Form
+			schema={{
+				firstname: fieldSchema({ as: "input", rules: "string|min:1" }),
+				surname: fieldSchema({ as: "input", rules: "string|min:1" }),
+				bio: fieldSchema({ as: "input", rules: "string|min:1" }),
+				area: { latitude: fieldSchema({ as: "input" }), longitude: fieldSchema({ as: "input" }) },
+			}}>
+			{({ $ }) => (
+				<>
+					<Field
+						{...$("area.longitude").bind()}
+						onChange={() => $("surname").setProp("disabled", true)}
+					/>
+				</>
+			)}
+		</Form>
+	);
 };
 
 // const Example = () => {

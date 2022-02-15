@@ -11,21 +11,23 @@ function isFieldSchema(value: any) {
 	return typeof value === "object" && value[FIELD_SCHEMA_IDENTIFIER_KEY];
 }
 
-export function fieldSchema<T extends keyof Alias>(base: SchemaBase.Field<T>): Schema.Field<T> {
+export function fieldSchema<T extends keyof Alias>(
+	base: Partial<SchemaBase.Field<T>>
+): Schema.Field<T> {
 	return {
+		props: {} as any,
+		customRules: null,
+		defaultValue: "" as any,
 		...base,
-		props: base.props || ({} as any),
 		[FIELD_SCHEMA_IDENTIFIER_KEY]: true,
 	} as Schema.Field<T>;
 }
 
-export function formSchema<T extends SchemaBase.Form>(
-	base: SchemaFormKind<T> | T
-): () => Schema.Form<T> {
+export function formSchema<T extends SchemaBase.Form>(base: SchemaFormKind<T> | T): Schema.Form<T> {
 	const pickedBase = typeof base === "function" ? base({ fieldSchema: fieldSchema as any }) : base;
 
-	if (pickedBase[FORM_SCHEMA_IDENTIFIER_KEY]) {
-		return () => pickedBase as unknown as Schema.Form<T>;
+	if ((pickedBase as any)[FORM_SCHEMA_IDENTIFIER_KEY]) {
+		return pickedBase as unknown as Schema.Form<T>;
 	}
 
 	const entries = deepObjectEntries(pickedBase, (_, value) => !isFieldSchema(value));
@@ -43,18 +45,17 @@ export function formSchema<T extends SchemaBase.Form>(
 			fieldSchemas.filter(([targetKey]) => (targetKey as string).includes(key)).map(([key]) => key),
 		]);
 
-	return () =>
-		({
-			[FIELD_SCHEMA_IDENTIFIER_KEY]: true,
-			[FIELD_SCHEMA_FIELDS_IDENTIFIER_KEY]: [...compiledSchemas, ...primitivesSchemas].reduce(
-				(acc, [key, value]) => ({ ...acc, [key as string]: value }),
-				{} as any
-			),
-			[FIELD_SCHEMA_GROUPS_IDENTIFIER_KEY]: groups.reduce(
-				(acc, [key, value]) => ({ ...acc, [`${key as string}.*`]: value }),
-				{} as any
-			),
-		} as any);
+	return {
+		[FIELD_SCHEMA_IDENTIFIER_KEY]: true,
+		[FIELD_SCHEMA_FIELDS_IDENTIFIER_KEY]: [...compiledSchemas, ...primitivesSchemas].reduce(
+			(acc, [key, value]) => ({ ...acc, [key as string]: value }),
+			{} as any
+		),
+		[FIELD_SCHEMA_GROUPS_IDENTIFIER_KEY]: groups.reduce(
+			(acc, [key, value]) => ({ ...acc, [`${key as string}.*`]: value }),
+			{} as any
+		),
+	} as any;
 }
 
 type StoreSchema<S extends Record<string, any>> = {
