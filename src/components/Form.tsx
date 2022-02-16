@@ -1,15 +1,23 @@
-import React from "react";
+import React, { forwardRef } from "react";
 
 import { useFormix } from "@core/hooks";
-import { Schema, SchemaBase, SchemaFormKind, UseFormix } from "@core/types";
+import { FormSchemaBase, FormSchema, UseFormixReturnType } from "@core/types";
 
-export const Form = <S extends SchemaFormKind<any>>({ children, schema }: Props<S>) => {
-	const formix = useFormix(schema as any);
+export const Form = forwardRef(
+	<T extends FormSchemaBase | FormSchema<any>>({ schema, children }: Props<T>, ref: any) => {
+		const formix = useFormix(schema);
 
-	return <form>{children(formix)}</form>;
-};
+		return <form ref={ref}>{children(formix as any)}</form>;
+	}
+) as <T extends FormSchemaBase | FormSchema<any>>(
+	props: Props<T> & { ref?: React.ForwardedRef<HTMLFormElement> }
+) => JSX.Element;
 
-export type Props<S extends SchemaFormKind<any>> = {
-	children: (formix: UseFormix<S extends SchemaFormKind<infer R> ? R : never>) => React.ReactNode;
-	schema: S;
+export type Props<T extends FormSchemaBase | FormSchema<any>> = {
+	schema: T;
+	children: (
+		formix: UseFormixReturnType<
+			T extends FormSchema<infer R> ? R : T extends FormSchemaBase ? T : never
+		>
+	) => React.ReactNode;
 };

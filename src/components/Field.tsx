@@ -1,23 +1,14 @@
 import React, { forwardRef } from "react";
 
-import { ALIAS_IDENTIFIER_KEY } from "@core/config";
-import type { Alias } from "@core/types";
+import { DEFAULT_ALIAS } from "@config";
+import { Alias } from "@core/types";
 
-export const Field = <T extends Alias.Base, C extends keyof T>({
-	as,
-	[ALIAS_IDENTIFIER_KEY]: alias,
-	...rest
-}: Props<T, C>) => {
-	// @ts-ignore
-	const Children = alias[as];
+export const Field = forwardRef(<T extends keyof Alias>({ as, ...rest }: Props<T>, ref: any) => {
+	const Children = DEFAULT_ALIAS[as];
 
-	return <Children {...(rest as any)} />;
-};
+	return <>{Children ? <Children ref={ref} {...(rest as any)} /> : null}</>;
+}) as <T extends keyof Alias>(props: Props<T> & { ref?: React.ForwardedRef<any> }) => JSX.Element;
 
-export type Props<T extends Alias.Base, C extends keyof T> = {
+export type Props<T extends keyof Alias> = {
 	as: T;
-} & { [K in typeof ALIAS_IDENTIFIER_KEY]: C } & (T[C] extends React.FC<infer R>
-		? R extends object
-			? R
-			: {}
-		: {});
+} & (Alias[T] extends React.FC<infer R> ? (R extends Record<string, any> ? R : {}) : {});
