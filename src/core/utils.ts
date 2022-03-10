@@ -19,3 +19,17 @@ export function deepObjectEntries<T extends Record<string, any>>(
 
 	return entries;
 }
+
+export function excludeProperties<T, K extends keyof T>(object: T, ...keys: K[]) {
+	const entries = Object.entries(object) as [K, any][];
+	const filteredEntries = entries.filter(([key]) => !keys.includes(key));
+
+	return Object.fromEntries(filteredEntries) as Omit<T, K>;
+}
+
+export function pickProperties<T, K extends keyof T>(object: T, ...keys: K[]) {
+	const entries = Object.entries(object) as [K, any][];
+	const filteredEntries = entries.filter(([key]) => keys.includes(key));
+
+	return Object.fromEntries(filteredEntries) as Pick<T, K>;
+}

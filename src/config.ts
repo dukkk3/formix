@@ -1,6 +1,6 @@
-import { Input } from "@components/Input";
-import { Select } from "@components/Select";
-import { TextArea } from "@components/TextArea";
+import { Input } from "./components/Input";
+import { Select } from "./components/Select";
+import { TextArea } from "./components/TextArea";
 
 export const FIELD_SCHEMA_SYMBOL = Symbol("FIELD_SCHEMA") as unknown as "FIELD_SCHEMA";
 

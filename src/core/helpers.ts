@@ -1,10 +1,11 @@
+import FastestValidator, { ValidatorConstructorOptions } from "fastest-validator";
 import {
 	FORM_SCHEMA_SYMBOL,
 	FIELD_SCHEMA_SYMBOL,
 	FORM_SCHEMA_FIELDS_SYMBOL,
 	FORM_SCHEMA_GROUPS_SYMBOL,
-} from "@config";
-import { deepObjectEntries } from "@core/utils";
+} from "../config";
+import { deepObjectEntries } from "./utils";
 import type {
 	Alias,
 	FormSchema,
@@ -14,7 +15,7 @@ import type {
 	FormSchemaBase,
 	FieldSchemaKey,
 	FieldSchemaBase,
-} from "@core/types";
+} from "./types";
 
 export function fieldSchema<T extends keyof Alias, P extends FieldSchemaBase<T> | FieldSchema<T>>(
 	base: Partial<FieldSchemaBase<T>>
@@ -32,7 +33,7 @@ export function fieldSchema<T extends keyof Alias, P extends FieldSchemaBase<T> 
 			as: "" as any,
 			props: {} as any,
 			initialValue: "",
-			rules: "",
+			rules: null,
 			...base,
 		},
 	} as any;
@@ -54,27 +55,31 @@ export function formSchema<T extends FormSchemaBase | FormSchema<any>>(
 		(_, value) => !(typeof value === "object" && value[FIELD_SCHEMA_SYMBOL])
 	);
 
-	const rawFields = baseEntries.filter(([_, value]) => ["string", "boolean"].includes(typeof value));
+	const rawFields = baseEntries.filter(
+		([_, value]) => Array.isArray(value) || ["string", "boolean"].includes(typeof value)
+	);
 	const preparedFields = baseEntries.filter(
 		([_, value]) => typeof value === "object" && value[FIELD_SCHEMA_SYMBOL]
 	);
 
 	const fields = [...preparedFields, ...rawFields].map(([key, value]) => [
 		key,
-		["string", "boolean"].includes(typeof value) ? fieldSchema({ initialValue: value }) : value,
+		Array.isArray(value) || ["string", "boolean"].includes(typeof value)
+			? fieldSchema({ initialValue: value })
+			: value,
 	]);
 
 	const groups = baseEntries
 		.filter(([baseEntryKey]) => fields.every(([key]) => key !== baseEntryKey))
 		.map(([baseEntryKey]) => [
 			`${baseEntryKey}.*`,
-			fields.filter(([key]) => key.includes(baseEntryKey)),
+			fields.filter(([key]) => key.includes(baseEntryKey)).map(([key]) => key),
 		]);
 
 	return {
 		[FORM_SCHEMA_SYMBOL]: {
-			[FORM_SCHEMA_FIELDS_SYMBOL]: fields as any,
-			[FORM_SCHEMA_GROUPS_SYMBOL]: groups as any,
+			[FORM_SCHEMA_FIELDS_SYMBOL]: Object.fromEntries(fields) as any,
+			[FORM_SCHEMA_GROUPS_SYMBOL]: Object.fromEntries(groups) as any,
 		},
 	} as any;
 }
@@ -95,3 +100,20 @@ export function storeSchema<S extends Record<string, any>>(object: S) {
 		{} as StoreSchema<S>
 	);
 }
+
+export function makeValidate(options: ValidatorConstructorOptions = {}) {
+	const validator = new FastestValidator(options);
+
+	return (values: any, schema: any) => {
+		const check = validator.compile(schema);
+		const errors = check(values);
+
+		if (Array.isArray(errors)) {
+			return errors.reduce((acc, error) => ({ ...acc, [error.field]: error.message }), {});
+		}
+
+		return {};
+	};
+}
+
+export const defaultValidate = makeValidate();

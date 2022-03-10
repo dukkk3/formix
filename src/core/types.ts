@@ -4,7 +4,7 @@ import {
 	FIELD_SCHEMA_SYMBOL,
 	FORM_SCHEMA_SYMBOL,
 	DEFAULT_ALIAS,
-} from "@config";
+} from "../config";
 
 export type Alias = typeof DEFAULT_ALIAS;
 
@@ -13,16 +13,31 @@ export type FormSchemaGroupsKey = typeof FORM_SCHEMA_GROUPS_SYMBOL;
 export type FieldSchemaKey = typeof FIELD_SCHEMA_SYMBOL;
 export type FormSchemaKey = typeof FORM_SCHEMA_SYMBOL;
 
-export type FormPrimitives = boolean | string | FieldSchema<any>;
+export type FormPrimitives = FormValuePrimitive | FieldSchema<any>;
+export type FormValuePrimitive = string | boolean | string[];
 
 export type FieldSchemaBase<K extends keyof Alias> = {
 	as: K;
 	props: Alias[K] extends React.FC<infer R> ? R : { [k: string]: any };
-	initialValue: string | boolean;
 	rules: any;
+	initialValue: FormValuePrimitive;
 };
 
-export type FieldSchema<K extends keyof Alias> = { [key in FieldSchemaKey]: FieldSchemaBase<K> };
+export type CustomFieldValidateFn = (
+	value: FormValuePrimitive,
+	schema: any
+) => CustomValidateFnReturnType<string>;
+
+export type CustomFormValidateFn<T extends string> = (
+	values: Partial<Record<T, FormValuePrimitive>>,
+	schema: Partial<Record<T, any>>
+) => CustomValidateFnReturnType<Partial<Record<T, string>>>;
+
+type CustomValidateFnReturnType<T> = Promise<T> | T;
+
+export type FieldSchema<K extends keyof Alias> = {
+	[key in FieldSchemaKey]: FieldSchemaBase<K>;
+};
 
 export type FormSchemaBase = { [k: string]: any };
 
@@ -57,24 +72,25 @@ export type UseFormixReturnType<
 		name: N,
 		props: ((prevProps: P) => Partial<P>) | P
 	) => void;
-	getProp: <N extends TFK, P extends TF[N][FieldSchemaKey]["props"], PN extends keyof P>(
-		name: N,
-		propName: PN
-	) => P[PN];
-	getProps: <N extends TFK>(name: N) => TF[N][FieldSchemaKey]["props"];
-	getValue: <N extends TFK>(name: N) => string | boolean;
-	getError: <N extends TFK>(name: N) => string;
-	getTouched: <N extends TFK>(name: N) => boolean;
-	setValues: (values: Partial<Record<TFK, string | boolean>>) => void;
-	setError: <N extends TFK>(name: N, error: string) => void;
+	// getProp: <N extends TFK, P extends TF[N][FieldSchemaKey]["props"], PN extends keyof P>(
+	// 	name: N,
+	// 	propName: PN
+	// ) => P[PN];
+	// getProps: <N extends TFK>(name: N) => TF[N][FieldSchemaKey]["props"];
+	getValue: (name: TFK) => FormValuePrimitive;
+	getError: (name: TFK) => string;
+	// getTouched: <N extends TFK>(name: N) => boolean;
+	setValues: (values: Partial<Record<TFK, FormValuePrimitive>>) => void;
+	setError: (name: TFK, error: string) => void;
 	setErrors: (errors: Partial<Record<TFK, string>>) => void;
-	getMeta: () => Record<TFK, { touched: boolean; error: string }>;
-	getValues: () => Record<TFK, string | boolean>;
+	// getMeta: () => Record<TFK, { touched: boolean; error: string }>;
+	getValues: () => Record<TFK, FormValuePrimitive>;
 	getErrors: () => Record<TFK, string>;
-	switchDisabled: (disabled: boolean) => void;
-	disabled: <N extends TFK>(name?: N) => boolean;
-	isValid: <N extends TFK | TGK>(name?: N) => boolean;
-	validate: <N extends TFK | TGK>(name?: N) => boolean;
+	bind: <N extends TFK>(name: N) => { as: TF[N][FieldSchemaKey]["as"] };
+	// switchDisabled: (disabled: boolean) => void;
+	// disabled: <N extends TFK>(name?: N) => boolean;
+	isValid: (name?: TFK | TGK) => Promise<boolean>;
+	validate: (name?: TFK | TGK) => Promise<boolean>;
 	$: <N extends TFK>(
 		name: N
 	) => {
