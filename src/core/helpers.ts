@@ -15,10 +15,12 @@ import type {
 	FormSchemaBase,
 	FieldSchemaKey,
 	FieldSchemaBase,
+	FormPrimitiveElement,
+	FormValuePrimitive,
 } from "./types";
 
 export function fieldSchema<T extends keyof Alias, P extends FieldSchemaBase<T> | FieldSchema<T>>(
-	base: Partial<FieldSchemaBase<T>>
+	base: Partial<FieldSchemaBase<T>> & Pick<FieldSchemaBase<T>, "initialValue">
 ): P extends { [key in FieldSchemaKey]: any }
 	? P
 	: T extends FieldSchemaBase<any>
@@ -31,8 +33,6 @@ export function fieldSchema<T extends keyof Alias, P extends FieldSchemaBase<T> 
 	return {
 		[FIELD_SCHEMA_SYMBOL]: {
 			as: "" as any,
-			props: {} as any,
-			initialValue: "",
 			rules: null,
 			...base,
 		},
@@ -55,25 +55,19 @@ export function formSchema<T extends FormSchemaBase | FormSchema<any>>(
 		(_, value) => !(typeof value === "object" && value[FIELD_SCHEMA_SYMBOL])
 	);
 
-	const rawFields = baseEntries.filter(
-		([_, value]) => Array.isArray(value) || ["string", "boolean"].includes(typeof value)
-	);
-	const preparedFields = baseEntries.filter(
+	const rawFields = baseEntries
+		.filter(([_, value]) => Array.isArray(value) || typeof value !== "object")
+		.map(([key, value]) => [key, fieldSchema({ initialValue: value })]);
+
+	const fields = [...rawFields, ...baseEntries].filter(
 		([_, value]) => typeof value === "object" && value[FIELD_SCHEMA_SYMBOL]
 	);
-
-	const fields = [...preparedFields, ...rawFields].map(([key, value]) => [
-		key,
-		Array.isArray(value) || ["string", "boolean"].includes(typeof value)
-			? fieldSchema({ initialValue: value })
-			: value,
-	]);
 
 	const groups = baseEntries
 		.filter(([baseEntryKey]) => fields.every(([key]) => key !== baseEntryKey))
 		.map(([baseEntryKey]) => [
 			`${baseEntryKey}.*`,
-			fields.filter(([key]) => key.includes(baseEntryKey)).map(([key]) => key),
+			fields.filter(([key]) => (key as string).includes(baseEntryKey)).map(([key]) => key),
 		]);
 
 	return {
@@ -117,3 +111,85 @@ export function makeValidate(options: ValidatorConstructorOptions = {}) {
 }
 
 export const defaultValidate = makeValidate();
+
+export function setFieldValue(
+	element: NonNullable<FormPrimitiveElement>,
+	value: FormValuePrimitive
+) {
+	const isValueArray = Array.isArray(value);
+	const isValueBoolean = !isValueArray && typeof value === "boolean";
+
+	const isSelectElement = element.tagName === "SELECT";
+	const isInputElement = !isSelectElement && element.tagName === "INPUT";
+	const isRadioElement = isInputElement && element.type === "radio";
+	const isCheckboxElement = isInputElement && element.type === "checkbox";
+	// console.log(element, value);
+	if (isSelectElement) {
+		const options = element.querySelectorAll("option");
+		options.forEach((option) => {
+			if ((isValueArray && value.includes(option.value)) || value === option.value) {
+				option.setAttribute("selected", "");
+			} else {
+				option.removeAttribute("selected");
+			}
+		});
+	} else if (isRadioElement) {
+		const source = element.closest("form") || document;
+		const similarInputs = source.querySelectorAll<HTMLInputElement>(`input[name="${element.name}"]`);
+
+		similarInputs.forEach((input) => {
+			input.checked = input.value === value;
+		});
+	} else if (isCheckboxElement) {
+		if (isValueArray) {
+			const source = element.closest("form") || document;
+			const similarInputs = source.querySelectorAll<HTMLInputElement>(`input[name="${element.name}"]`);
+
+			similarInputs.forEach((input) => {
+				input.checked = value.includes(input.value);
+			});
+		} else if (isValueBoolean) {
+			(element as HTMLInputElement).checked = value;
+		}
+	} else if (isInputElement) {
+		if (!isValueBoolean && !isValueArray) {
+			element.value = value;
+		}
+	}
+}
+
+export function getNewFieldValue(
+	element: NonNullable<FormPrimitiveElement>,
+	value: FormValuePrimitive
+) {
+	const isValueArray = Array.isArray(value);
+
+	const isSelectElement = element.tagName === "SELECT";
+	const isInputElement = !isSelectElement && element.tagName === "INPUT";
+	const isRadioElement = isInputElement && element.type === "radio";
+	const isCheckboxElement = isInputElement && element.type === "checkbox";
+
+	if (isSelectElement) {
+		const typeSafeElement = element as HTMLSelectElement;
+		return typeSafeElement.multiple
+			? [...typeSafeElement.selectedOptions].map((option) => option.value)
+			: typeSafeElement.value;
+	} else if (isRadioElement) {
+		// const typeSafeElement = element as HTMLInputElement;
+		const source = element.closest("form") || document;
+		const similarInputs = source.querySelectorAll<HTMLInputElement>(`input[name="${element.name}"]`);
+		return [...similarInputs].filter((input) => input.checked).map((input) => input.value)[0] || "";
+	} else if (isCheckboxElement) {
+		const typeSafeElement = element as HTMLInputElement;
+		const source = element.closest("form") || document;
+		const similarInputs = source.querySelectorAll<HTMLInputElement>(`input[name="${element.name}"]`);
+
+		if (similarInputs.length > 0) {
+			return isValueArray
+				? [...similarInputs].filter((input) => input.checked).map((input) => input.value)
+				: typeSafeElement.checked;
+		}
+	}
+
+	return element.value;
+}

@@ -33,3 +33,7 @@ export function pickProperties<T, K extends keyof T>(object: T, ...keys: K[]) {
 
 	return Object.fromEntries(filteredEntries) as Pick<T, K>;
 }
+
+export function removeDuplicateElements<T>(array: T[]) {
+	return [...new Set(array)];
+}

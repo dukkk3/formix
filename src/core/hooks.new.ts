@@ -1,5 +1,14 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useLocalObservable } from "mobx-react-lite";
+import isDeepEqual from "react-fast-compare";
+
+//
+//
+//
+// TODO: Сохранение типа initialValue
+// TODO: FormElements каждый элемент сделать массивом
+//
+//
 
 import {
 	FIELD_SCHEMA_SYMBOL,
@@ -7,7 +16,14 @@ import {
 	FORM_SCHEMA_GROUPS_SYMBOL,
 	FORM_SCHEMA_SYMBOL,
 } from "../config";
-import { fieldSchema, formSchema, storeSchema, defaultValidate } from "./helpers";
+import {
+	fieldSchema,
+	formSchema,
+	storeSchema,
+	defaultValidate,
+	setFieldValue,
+	getNewFieldValue,
+} from "./helpers";
 import { pickProperties } from "./utils";
 import type {
 	Alias,
@@ -24,6 +40,7 @@ import type {
 	CustomFormValidateFn,
 	CustomFieldValidateFn,
 	FieldSchemaKey,
+	FormPrimitiveElement,
 } from "./types";
 
 type GetFormSchemaBase<T extends FormSchemaBase | FormSchema<any>> = T extends FormSchema<infer R>
@@ -32,14 +49,14 @@ type GetFormSchemaBase<T extends FormSchemaBase | FormSchema<any>> = T extends F
 	? T
 	: never;
 
-type FormPrimitiveElement = HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement | null;
+// type FormPrimitiveElement = HTMLSelectElement | HTMLTextAreaElement | HTMLInputElement | null;
 
 interface Options<T extends string> {
 	validate?: CustomFormValidateFn<T>;
 	// powerMode?: boolean;
 }
 
-function useLocalStore<T extends Record<string, any>>(base: T) {
+export function useLocalStore<T extends Record<string, any>>(base: T) {
 	return useLocalObservable(() => storeSchema(base));
 }
 
@@ -50,8 +67,16 @@ export function useFormixTest<
 	NF extends keyof F[FormSchemaKey][FormSchemaFieldsKey],
 	NG extends keyof F[FormSchemaKey][FormSchemaGroupsKey]
 >(schema: T, { validate = defaultValidate }: Options<NF> = {}) {
+	const schemaRef = useRef(schema);
 	const formElements = useMemo(() => ({} as Record<NF, FormPrimitiveElement>), []);
-	const compiledSchema = useMemo(() => formSchema(schema), [schema]);
+
+	if (!isDeepEqual(schemaRef.current, schema) || schema !== schemaRef.current) {
+		schemaRef.current = schema;
+	}
+
+	const compiledSchema = useMemo(() => {
+		return formSchema(schemaRef.current);
+	}, [schemaRef.current]);
 
 	const formSchemaContent = useMemo(() => compiledSchema[FORM_SCHEMA_SYMBOL], [compiledSchema]);
 	const fieldsSchemaContent = useMemo(
@@ -91,20 +116,13 @@ export function useFormixTest<
 	const initialValues = useMemo(() => {
 		return reduceFields<FormValuePrimitive>((acc, name) => ({
 			...acc,
-			[name]: getFieldSchema(name)["initialValue"] || "",
+			[name]: getFieldSchema(name)["initialValue"],
 		}));
 	}, [reduceFields, getFieldSchema]);
 
 	const initialErrors = useMemo(() => {
 		return reduceFields<string>((acc, name) => ({ ...acc, [name]: "" }));
 	}, [reduceFields]);
-
-	const initialProps = useMemo(() => {
-		return reduceFields<any>((acc, name) => ({
-			...acc,
-			[name]: getFieldSchema(name)["props"] || {},
-		}));
-	}, [reduceFields, getFieldSchema]);
 
 	const rulesSchema = useMemo(() => {
 		return reduceFields<any>((acc, name) => ({
@@ -115,7 +133,32 @@ export function useFormixTest<
 
 	const valuesStore = useLocalStore(initialValues);
 	const errorsStore = useLocalStore(initialErrors);
-	const propsStore = useLocalStore(initialProps);
+
+	const setValues = useCallback(
+		(values: Partial<Record<NF, FormValuePrimitive>>) => {
+			fieldsSchemaContentKeys.forEach((key) => {
+				const value = values[key];
+
+				if (typeof value !== "undefined" && value !== null) {
+					const element = formElements[key];
+
+					if (element) {
+						setFieldValue(element, value);
+					}
+
+					valuesStore[key].set(value as any);
+				}
+			});
+		},
+		[fieldsSchemaContentKeys, formElements, valuesStore]
+	);
+
+	const getValues = useCallback(() => {
+		return reduceFields<FormValuePrimitive>((acc, name) => ({
+			...acc,
+			[name]: valuesStore[name].value,
+		}));
+	}, [reduceFields, valuesStore]);
 
 	const createRefHandler = useCallback(
 		(name: NF) => (element: FormPrimitiveElement) => {
@@ -123,63 +166,21 @@ export function useFormixTest<
 			formElements[name] = element;
 
 			if (element) {
-				if (Array.isArray(value)) {
-					if ("checked" in element) {
-						element.checked = value.includes(element.value);
-					} else if (element.tagName === "select") {
-						element.querySelectorAll("option").forEach((option) => {
-							if (value.includes(option.value)) {
-								option.setAttribute("selected", "");
-							} else {
-								option.removeAttribute("selected");
-							}
-						});
-					}
-				} else {
-					if ("checked" in element) {
-						element.checked = value === element.value;
-					} else {
-						(element as any).value = value;
-					}
-				}
+				setFieldValue(element, value);
 			}
 		},
 		[formElements, valuesStore]
 	);
 
-	const getNewValue = useCallback(
-		(target: NonNullable<FormPrimitiveElement>, currentValue: FormValuePrimitive) => {
-			const value = target.value;
-
-			if (Array.isArray(currentValue)) {
-				if ("selectedOptions" in target) {
-					return [...target.selectedOptions].map((item) => item.value);
-				} else if ("checked" in target) {
-					const checked = Boolean(target.checked);
-					console.log("ok", currentValue, [...new Set([...currentValue, value])]);
-					return checked
-						? [...new Set([...currentValue, value])]
-						: currentValue.filter((item) => item !== value);
-				} else {
-					return [...new Set([...currentValue, value])];
-				}
-			} else if (typeof currentValue === "boolean") {
-				return Boolean((target as any).checked);
-			} else {
-				return target.value;
-			}
-		},
-		[]
-	);
-
 	const createChangeHandler = useCallback(
 		(name: NF) => (event: React.ChangeEvent<NonNullable<FormPrimitiveElement>>) => {
 			const targetElement = event.target;
-			const newValue = getNewValue(targetElement, valuesStore[name].value);
-			console.log(newValue);
+			const newValue = getNewFieldValue(targetElement, valuesStore[name].value);
+
+			setFieldValue(event.target, newValue);
 			valuesStore[name].set(newValue);
 		},
-		[getNewValue, valuesStore]
+		[valuesStore]
 	);
 
 	const bind = useCallback(
@@ -192,13 +193,19 @@ export function useFormixTest<
 			return {
 				as: getFieldSchema(name).as,
 				ref,
+				name,
 				onChange,
 			} as any;
 		},
-		[createChangeHandler, createRefHandler]
+		[createChangeHandler, createRefHandler, getFieldSchema]
 	);
+
+	useEffect(() => {
+		setValues(initialValues);
+	}, [fieldsSchemaContentKeys, formElements, initialValues, setValues]);
 
 	return {
 		bind,
+		getValues,
 	};
 }

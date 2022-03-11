@@ -15,10 +15,14 @@ export type FormSchemaKey = typeof FORM_SCHEMA_SYMBOL;
 
 export type FormPrimitives = FormValuePrimitive | FieldSchema<any>;
 export type FormValuePrimitive = string | boolean | string[];
+export type FormPrimitiveElement =
+	| HTMLInputElement
+	| HTMLSelectElement
+	| HTMLTextAreaElement
+	| null;
 
 export type FieldSchemaBase<K extends keyof Alias> = {
 	as: K;
-	props: Alias[K] extends React.FC<infer R> ? R : { [k: string]: any };
 	rules: any;
 	initialValue: FormValuePrimitive;
 };
@@ -63,20 +67,6 @@ export type UseFormixReturnType<
 	TFK extends keyof TF = keyof TF,
 	TGK extends keyof TG = keyof TG
 > = {
-	setProp: <N extends TFK, P extends TF[N][FieldSchemaKey]["props"], PN extends keyof P>(
-		name: N,
-		propName: PN,
-		value: ((prevValue: P[PN]) => P[PN]) | P[PN]
-	) => void;
-	setProps: <N extends TFK, P extends TF[N][FieldSchemaKey]["props"]>(
-		name: N,
-		props: ((prevProps: P) => Partial<P>) | P
-	) => void;
-	// getProp: <N extends TFK, P extends TF[N][FieldSchemaKey]["props"], PN extends keyof P>(
-	// 	name: N,
-	// 	propName: PN
-	// ) => P[PN];
-	// getProps: <N extends TFK>(name: N) => TF[N][FieldSchemaKey]["props"];
 	getValue: (name: TFK) => FormValuePrimitive;
 	getError: (name: TFK) => string;
 	// getTouched: <N extends TFK>(name: N) => boolean;

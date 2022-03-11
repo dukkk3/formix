@@ -22785,129 +22785,310 @@ var _mobxReactLite = require("mobx-react-lite");
 var _index = require("../index");
 var _hooksNew = require("../core/hooks.new");
 var _s = $RefreshSig$();
-const App = ()=>{
+const App = ({ schema  })=>{
     _s();
     const formix = _hooksNew.useFormixTest({
         insurer: {
             firstname: [],
             roles: _index.fieldSchema({
                 as: "input",
-                initialValue: []
+                initialValue: [
+                    "hitler"
+                ]
             }),
             gender: _index.fieldSchema({
-                as: "input"
+                as: "input",
+                initialValue: ""
+            }),
+            accept: _index.fieldSchema({
+                as: "input",
+                initialValue: false
+            }),
+            bio: _index.fieldSchema({
+                as: "textArea",
+                initialValue: ""
             })
         }
     });
     return(/*#__PURE__*/ _jsxDevRuntime.jsxDEV("form", {
         onSubmit: (event)=>{
             event.preventDefault();
+            console.log(formix.getValues());
         // console.log(formix.$("insurer.roles").getValue());
         },
         children: [
-            /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_mobxReactLite.Observer, {
-                children: ()=>/*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
-                        ...formix.bind("insurer.firstname"),
-                        as: "select",
-                        multiple: true,
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
+                ...formix.bind("insurer.firstname"),
+                as: "select",
+                multiple: true,
+                children: [
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV("option", {
+                        value: "1",
+                        children: "1"
+                    }, void 0, false, {
+                        fileName: "src/tests/App.tsx",
+                        lineNumber: 66,
+                        columnNumber: 5
+                    }, undefined),
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV("option", {
+                        value: "2",
+                        children: "2"
+                    }, void 0, false, {
+                        fileName: "src/tests/App.tsx",
+                        lineNumber: 67,
+                        columnNumber: 5
+                    }, undefined)
+                ]
+            }, void 0, true, {
+                fileName: "src/tests/App.tsx",
+                lineNumber: 65,
+                columnNumber: 4
+            }, undefined),
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("br", {
+            }, void 0, false, {
+                fileName: "src/tests/App.tsx",
+                lineNumber: 69,
+                columnNumber: 4
+            }, undefined),
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("br", {
+            }, void 0, false, {
+                fileName: "src/tests/App.tsx",
+                lineNumber: 70,
+                columnNumber: 4
+            }, undefined),
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("div", {
+                children: [
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_mobxReactLite.Observer, {
+                        children: ()=>/*#__PURE__*/ _jsxDevRuntime.jsxDEV("label", {
+                                children: [
+                                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
+                                        ...formix.bind("insurer.roles"),
+                                        type: "checkbox",
+                                        value: "male"
+                                    }, void 0, false, {
+                                        fileName: "src/tests/App.tsx",
+                                        lineNumber: 75,
+                                        columnNumber: 8
+                                    }, undefined),
+                                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV("span", {
+                                        children: [
+                                            "Male _",
+                                            formix.getValues()["insurer.roles"],
+                                            "_"
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "src/tests/App.tsx",
+                                        lineNumber: 76,
+                                        columnNumber: 8
+                                    }, undefined)
+                                ]
+                            }, void 0, true, {
+                                fileName: "src/tests/App.tsx",
+                                lineNumber: 74,
+                                columnNumber: 7
+                            }, undefined)
+                    }, void 0, false, {
+                        fileName: "src/tests/App.tsx",
+                        lineNumber: 72,
+                        columnNumber: 5
+                    }, undefined),
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV("br", {
+                    }, void 0, false, {
+                        fileName: "src/tests/App.tsx",
+                        lineNumber: 80,
+                        columnNumber: 5
+                    }, undefined),
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV("label", {
                         children: [
-                            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("option", {
-                                value: "1",
-                                children: "1"
+                            /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
+                                ...formix.bind("insurer.roles"),
+                                type: "checkbox",
+                                value: "female"
                             }, void 0, false, {
                                 fileName: "src/tests/App.tsx",
-                                lineNumber: 40,
-                                columnNumber: 7
+                                lineNumber: 82,
+                                columnNumber: 6
                             }, undefined),
-                            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("option", {
-                                value: "2",
-                                children: "2"
+                            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("span", {
+                                children: "Female"
                             }, void 0, false, {
                                 fileName: "src/tests/App.tsx",
-                                lineNumber: 41,
-                                columnNumber: 7
+                                lineNumber: 83,
+                                columnNumber: 6
                             }, undefined)
                         ]
                     }, void 0, true, {
                         fileName: "src/tests/App.tsx",
-                        lineNumber: 39,
-                        columnNumber: 6
+                        lineNumber: 81,
+                        columnNumber: 5
+                    }, undefined),
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV("br", {
+                    }, void 0, false, {
+                        fileName: "src/tests/App.tsx",
+                        lineNumber: 85,
+                        columnNumber: 5
+                    }, undefined),
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV("label", {
+                        children: [
+                            /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
+                                ...formix.bind("insurer.roles"),
+                                type: "checkbox",
+                                value: "nonGender"
+                            }, void 0, false, {
+                                fileName: "src/tests/App.tsx",
+                                lineNumber: 87,
+                                columnNumber: 6
+                            }, undefined),
+                            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("span", {
+                                children: "non Gender"
+                            }, void 0, false, {
+                                fileName: "src/tests/App.tsx",
+                                lineNumber: 88,
+                                columnNumber: 6
+                            }, undefined)
+                        ]
+                    }, void 0, true, {
+                        fileName: "src/tests/App.tsx",
+                        lineNumber: 86,
+                        columnNumber: 5
+                    }, undefined),
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_mobxReactLite.Observer, {
+                        children: ()=>formix.getValues()["insurer.firstname"].includes("1") ? /*#__PURE__*/ _jsxDevRuntime.jsxDEV("label", {
+                                children: [
+                                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
+                                        ...formix.bind("insurer.roles"),
+                                        type: "checkbox",
+                                        value: "hitler"
+                                    }, void 0, false, {
+                                        fileName: "src/tests/App.tsx",
+                                        lineNumber: 94,
+                                        columnNumber: 9
+                                    }, undefined),
+                                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV("span", {
+                                        children: "hitler"
+                                    }, void 0, false, {
+                                        fileName: "src/tests/App.tsx",
+                                        lineNumber: 95,
+                                        columnNumber: 9
+                                    }, undefined)
+                                ]
+                            }, void 0, true, {
+                                fileName: "src/tests/App.tsx",
+                                lineNumber: 93,
+                                columnNumber: 8
+                            }, undefined) : null
+                    }, void 0, false, {
+                        fileName: "src/tests/App.tsx",
+                        lineNumber: 90,
+                        columnNumber: 5
                     }, undefined)
+                ]
+            }, void 0, true, {
+                fileName: "src/tests/App.tsx",
+                lineNumber: 71,
+                columnNumber: 4
+            }, undefined),
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("br", {
             }, void 0, false, {
                 fileName: "src/tests/App.tsx",
-                lineNumber: 37,
+                lineNumber: 101,
+                columnNumber: 4
+            }, undefined),
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("br", {
+            }, void 0, false, {
+                fileName: "src/tests/App.tsx",
+                lineNumber: 102,
                 columnNumber: 4
             }, undefined),
             /*#__PURE__*/ _jsxDevRuntime.jsxDEV("div", {
                 children: /*#__PURE__*/ _jsxDevRuntime.jsxDEV("label", {
                     children: [
-                        /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_mobxReactLite.Observer, {
-                            children: ()=>/*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
-                                    ...formix.bind("insurer.roles"),
-                                    type: "radio",
-                                    value: "male"
-                                }, void 0, false, {
-                                    fileName: "src/tests/App.tsx",
-                                    lineNumber: 48,
-                                    columnNumber: 14
-                                }, undefined)
+                        /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
+                            ...formix.bind("insurer.gender"),
+                            type: "radio",
+                            value: "male"
                         }, void 0, false, {
                             fileName: "src/tests/App.tsx",
-                            lineNumber: 47,
+                            lineNumber: 105,
                             columnNumber: 6
                         }, undefined),
                         /*#__PURE__*/ _jsxDevRuntime.jsxDEV("span", {
                             children: "Male"
                         }, void 0, false, {
                             fileName: "src/tests/App.tsx",
-                            lineNumber: 50,
+                            lineNumber: 106,
                             columnNumber: 6
                         }, undefined)
                     ]
                 }, void 0, true, {
                     fileName: "src/tests/App.tsx",
-                    lineNumber: 46,
+                    lineNumber: 104,
                     columnNumber: 5
                 }, undefined)
             }, void 0, false, {
                 fileName: "src/tests/App.tsx",
-                lineNumber: 45,
+                lineNumber: 103,
                 columnNumber: 4
             }, undefined),
             /*#__PURE__*/ _jsxDevRuntime.jsxDEV("div", {
                 children: /*#__PURE__*/ _jsxDevRuntime.jsxDEV("label", {
                     children: [
-                        /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_mobxReactLite.Observer, {
-                            children: ()=>/*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
-                                    ...formix.bind("insurer.roles"),
-                                    type: "radio",
-                                    value: "female"
-                                }, void 0, false, {
-                                    fileName: "src/tests/App.tsx",
-                                    lineNumber: 56,
-                                    columnNumber: 14
-                                }, undefined)
+                        /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
+                            ...formix.bind("insurer.gender"),
+                            type: "radio",
+                            value: "female"
                         }, void 0, false, {
                             fileName: "src/tests/App.tsx",
-                            lineNumber: 55,
+                            lineNumber: 111,
                             columnNumber: 6
                         }, undefined),
                         /*#__PURE__*/ _jsxDevRuntime.jsxDEV("span", {
                             children: "Female"
                         }, void 0, false, {
                             fileName: "src/tests/App.tsx",
-                            lineNumber: 58,
+                            lineNumber: 112,
                             columnNumber: 6
                         }, undefined)
                     ]
                 }, void 0, true, {
                     fileName: "src/tests/App.tsx",
-                    lineNumber: 54,
+                    lineNumber: 110,
                     columnNumber: 5
                 }, undefined)
             }, void 0, false, {
                 fileName: "src/tests/App.tsx",
-                lineNumber: 53,
+                lineNumber: 109,
+                columnNumber: 4
+            }, undefined),
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("label", {
+                children: [
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
+                        ...formix.bind("insurer.accept"),
+                        as: "input",
+                        type: "checkbox"
+                    }, void 0, false, {
+                        fileName: "src/tests/App.tsx",
+                        lineNumber: 116,
+                        columnNumber: 5
+                    }, undefined),
+                    /*#__PURE__*/ _jsxDevRuntime.jsxDEV("span", {
+                        children: "Accept"
+                    }, void 0, false, {
+                        fileName: "src/tests/App.tsx",
+                        lineNumber: 117,
+                        columnNumber: 5
+                    }, undefined)
+                ]
+            }, void 0, true, {
+                fileName: "src/tests/App.tsx",
+                lineNumber: 115,
+                columnNumber: 4
+            }, undefined),
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV(_index.Field, {
+                ...formix.bind("insurer.bio")
+            }, void 0, false, {
+                fileName: "src/tests/App.tsx",
+                lineNumber: 119,
                 columnNumber: 4
             }, undefined),
             /*#__PURE__*/ _jsxDevRuntime.jsxDEV("button", {
@@ -22915,13 +23096,25 @@ const App = ()=>{
                 children: "Submit"
             }, void 0, false, {
                 fileName: "src/tests/App.tsx",
-                lineNumber: 61,
+                lineNumber: 120,
+                columnNumber: 4
+            }, undefined),
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("br", {
+            }, void 0, false, {
+                fileName: "src/tests/App.tsx",
+                lineNumber: 121,
+                columnNumber: 4
+            }, undefined),
+            /*#__PURE__*/ _jsxDevRuntime.jsxDEV("br", {
+            }, void 0, false, {
+                fileName: "src/tests/App.tsx",
+                lineNumber: 122,
                 columnNumber: 4
             }, undefined)
         ]
     }, void 0, true, {
         fileName: "src/tests/App.tsx",
-        lineNumber: 32,
+        lineNumber: 59,
         columnNumber: 3
     }, undefined));
 };
@@ -22939,7 +23132,7 @@ $RefreshReg$(_c, "App");
   window.$RefreshReg$ = prevRefreshReg;
   window.$RefreshSig$ = prevRefreshSig;
 }
-},{"react":"21dqq","../index":"h7u1C","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"km3Ru","react/jsx-dev-runtime":"iTorj","mobx-react-lite":"e0C8P","../core/hooks.new":"l91Kg"}],"h7u1C":[function(require,module,exports) {
+},{"react":"21dqq","../index":"h7u1C","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"km3Ru","react/jsx-dev-runtime":"iTorj","../core/hooks.new":"l91Kg","mobx-react-lite":"e0C8P"}],"h7u1C":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Form", ()=>_form.Form
@@ -28713,6 +28906,10 @@ parcelHelpers.export(exports, "makeValidate", ()=>makeValidate
 );
 parcelHelpers.export(exports, "defaultValidate", ()=>defaultValidate
 );
+parcelHelpers.export(exports, "setFieldValue", ()=>setFieldValue
+);
+parcelHelpers.export(exports, "getNewFieldValue", ()=>getNewFieldValue
+);
 var _fastestValidator = require("fastest-validator");
 var _fastestValidatorDefault = parcelHelpers.interopDefault(_fastestValidator);
 var _config = require("../config");
@@ -28722,9 +28919,6 @@ function fieldSchema(base) {
     return {
         [_config.FIELD_SCHEMA_SYMBOL]: {
             as: "",
-            props: {
-            },
-            initialValue: "",
             rules: null,
             ...base
         }
@@ -28734,25 +28928,18 @@ function formSchema(base) {
     if (base[_config.FORM_SCHEMA_SYMBOL]) return base;
     const baseEntries = _utils.deepObjectEntries(base, (_, value)=>!(typeof value === "object" && value[_config.FIELD_SCHEMA_SYMBOL])
     );
-    const rawFields = baseEntries.filter(([_, value])=>Array.isArray(value) || [
-            "string",
-            "boolean"
-        ].includes(typeof value)
-    );
-    const preparedFields = baseEntries.filter(([_, value])=>typeof value === "object" && value[_config.FIELD_SCHEMA_SYMBOL]
+    const rawFields = baseEntries.filter(([_, value])=>Array.isArray(value) || typeof value !== "object"
+    ).map(([key, value])=>[
+            key,
+            fieldSchema({
+                initialValue: value
+            })
+        ]
     );
     const fields = [
-        ...preparedFields,
-        ...rawFields
-    ].map(([key, value])=>[
-            key,
-            Array.isArray(value) || [
-                "string",
-                "boolean"
-            ].includes(typeof value) ? fieldSchema({
-                initialValue: value
-            }) : value, 
-        ]
+        ...rawFields,
+        ...baseEntries
+    ].filter(([_, value])=>typeof value === "object" && value[_config.FIELD_SCHEMA_SYMBOL]
     );
     const groups = baseEntries.filter(([baseEntryKey])=>fields.every(([key])=>key !== baseEntryKey
         )
@@ -28801,6 +28988,71 @@ function makeValidate(options = {
     };
 }
 const defaultValidate = makeValidate();
+function setFieldValue(element, value) {
+    const isValueArray = Array.isArray(value);
+    const isValueBoolean = !isValueArray && typeof value === "boolean";
+    const isSelectElement = element.tagName === "SELECT";
+    const isInputElement = !isSelectElement && element.tagName === "INPUT";
+    const isRadioElement = isInputElement && element.type === "radio";
+    const isCheckboxElement = isInputElement && element.type === "checkbox";
+    // console.log(element, value);
+    if (isSelectElement) {
+        const options = element.querySelectorAll("option");
+        options.forEach((option)=>{
+            if (isValueArray && value.includes(option.value) || value === option.value) option.setAttribute("selected", "");
+            else option.removeAttribute("selected");
+        });
+    } else if (isRadioElement) {
+        const source = element.closest("form") || document;
+        const similarInputs = source.querySelectorAll(`input[name="${element.name}"]`);
+        similarInputs.forEach((input)=>{
+            input.checked = input.value === value;
+        });
+    } else if (isCheckboxElement) {
+        if (isValueArray) {
+            const source = element.closest("form") || document;
+            const similarInputs = source.querySelectorAll(`input[name="${element.name}"]`);
+            similarInputs.forEach((input)=>{
+                input.checked = value.includes(input.value);
+            });
+        } else if (isValueBoolean) element.checked = value;
+    } else if (isInputElement) {
+        if (!isValueBoolean && !isValueArray) element.value = value;
+    }
+}
+function getNewFieldValue(element, value) {
+    const isValueArray = Array.isArray(value);
+    const isSelectElement = element.tagName === "SELECT";
+    const isInputElement = !isSelectElement && element.tagName === "INPUT";
+    const isRadioElement = isInputElement && element.type === "radio";
+    const isCheckboxElement = isInputElement && element.type === "checkbox";
+    if (isSelectElement) {
+        const typeSafeElement = element;
+        return typeSafeElement.multiple ? [
+            ...typeSafeElement.selectedOptions
+        ].map((option)=>option.value
+        ) : typeSafeElement.value;
+    } else if (isRadioElement) {
+        // const typeSafeElement = element as HTMLInputElement;
+        const source = element.closest("form") || document;
+        const similarInputs = source.querySelectorAll(`input[name="${element.name}"]`);
+        return [
+            ...similarInputs
+        ].filter((input)=>input.checked
+        ).map((input)=>input.value
+        )[0] || "";
+    } else if (isCheckboxElement) {
+        const typeSafeElement = element;
+        const source = element.closest("form") || document;
+        const similarInputs = source.querySelectorAll(`input[name="${element.name}"]`);
+        if (similarInputs.length > 0) return isValueArray ? [
+            ...similarInputs
+        ].filter((input)=>input.checked
+        ).map((input)=>input.value
+        ) : typeSafeElement.checked;
+    }
+    return element.value;
+}
 
 },{"fastest-validator":"98ijC","../config":"gTux2","./utils":"8exFa","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"98ijC":[function(require,module,exports) {
 'use strict';
@@ -30356,6 +30608,8 @@ parcelHelpers.export(exports, "excludeProperties", ()=>excludeProperties
 );
 parcelHelpers.export(exports, "pickProperties", ()=>pickProperties
 );
+parcelHelpers.export(exports, "removeDuplicateElements", ()=>removeDuplicateElements
+);
 function deepObjectEntries(object, conditionFn) {
     const entries = [];
     const keys = Object.keys(object);
@@ -30387,6 +30641,11 @@ function pickProperties(object, ...keys) {
     const filteredEntries = entries.filter(([key])=>keys.includes(key)
     );
     return Object.fromEntries(filteredEntries);
+}
+function removeDuplicateElements(array) {
+    return [
+        ...new Set(array)
+    ];
 }
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2MYpo":[function(require,module,exports) {
@@ -30436,10 +30695,21 @@ $parcel$ReactRefreshHelpers$ee9e.prelude(module);
 try {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "useLocalStore", ()=>useLocalStore
+);
 parcelHelpers.export(exports, "useFormixTest", ()=>useFormixTest
 );
 var _react = require("react");
 var _mobxReactLite = require("mobx-react-lite");
+var _reactFastCompare = require("react-fast-compare");
+var _reactFastCompareDefault = parcelHelpers.interopDefault(_reactFastCompare);
+//
+//
+//
+// TODO: Сохранение типа initialValue
+//
+//
+//
 var _config = require("../config");
 var _helpers = require("./helpers");
 function useLocalStore(base) {
@@ -30448,12 +30718,15 @@ function useLocalStore(base) {
 }
 function useFormixTest(schema, { validate =_helpers.defaultValidate  } = {
 }) {
+    const schemaRef = _react.useRef(schema);
     const formElements = _react.useMemo(()=>({
         })
     , []);
-    const compiledSchema = _react.useMemo(()=>_helpers.formSchema(schema)
-    , [
-        schema
+    if (!_reactFastCompareDefault.default(schemaRef.current, schema) || schema !== schemaRef.current) schemaRef.current = schema;
+    const compiledSchema = _react.useMemo(()=>{
+        return _helpers.formSchema(schemaRef.current);
+    }, [
+        schemaRef.current
     ]);
     const formSchemaContent = _react.useMemo(()=>compiledSchema[_config.FORM_SCHEMA_SYMBOL]
     , [
@@ -30491,7 +30764,7 @@ function useFormixTest(schema, { validate =_helpers.defaultValidate  } = {
     const initialValues = _react.useMemo(()=>{
         return reduceFields((acc, name)=>({
                 ...acc,
-                [name]: getFieldSchema(name)["initialValue"] || ""
+                [name]: getFieldSchema(name)["initialValue"]
             })
         );
     }, [
@@ -30507,17 +30780,6 @@ function useFormixTest(schema, { validate =_helpers.defaultValidate  } = {
     }, [
         reduceFields
     ]);
-    const initialProps = _react.useMemo(()=>{
-        return reduceFields((acc, name)=>({
-                ...acc,
-                [name]: getFieldSchema(name)["props"] || {
-                }
-            })
-        );
-    }, [
-        reduceFields,
-        getFieldSchema
-    ]);
     const rulesSchema = _react.useMemo(()=>{
         return reduceFields((acc, name)=>({
                 ...acc,
@@ -30530,64 +30792,46 @@ function useFormixTest(schema, { validate =_helpers.defaultValidate  } = {
     ]);
     const valuesStore = useLocalStore(initialValues);
     const errorsStore = useLocalStore(initialErrors);
-    const propsStore = useLocalStore(initialProps);
+    const setValues = _react.useCallback((values)=>{
+        fieldsSchemaContentKeys.forEach((key)=>{
+            const value = values[key];
+            if (typeof value !== "undefined" && value !== null) {
+                const element = formElements[key];
+                if (element) _helpers.setFieldValue(element, value);
+                valuesStore[key].set(value);
+            }
+        });
+    }, [
+        fieldsSchemaContentKeys,
+        formElements,
+        valuesStore
+    ]);
+    const getValues = _react.useCallback(()=>{
+        return reduceFields((acc, name)=>({
+                ...acc,
+                [name]: valuesStore[name].value
+            })
+        );
+    }, [
+        reduceFields,
+        valuesStore
+    ]);
     const createRefHandler = _react.useCallback((name)=>(element)=>{
             const value = valuesStore[name].value;
             formElements[name] = element;
-            if (element) {
-                if (Array.isArray(value)) {
-                    if ("checked" in element) element.checked = value.includes(element.value);
-                    else if (element.tagName === "select") element.querySelectorAll("option").forEach((option)=>{
-                        if (value.includes(option.value)) option.setAttribute("selected", "");
-                        else option.removeAttribute("selected");
-                    });
-                } else if ("checked" in element) element.checked = value === element.value;
-                else element.value = value;
-            }
+            if (element) _helpers.setFieldValue(element, value);
         }
     , [
         formElements,
         valuesStore
     ]);
-    const getNewValue = _react.useCallback((target, currentValue)=>{
-        const value = target.value;
-        if (Array.isArray(currentValue)) {
-            if ("selectedOptions" in target) return [
-                ...target.selectedOptions
-            ].map((item)=>item.value
-            );
-            else if ("checked" in target) {
-                const checked = Boolean(target.checked);
-                console.log("ok", currentValue, [
-                    ...new Set([
-                        ...currentValue,
-                        value
-                    ])
-                ]);
-                return checked ? [
-                    ...new Set([
-                        ...currentValue,
-                        value
-                    ])
-                ] : currentValue.filter((item)=>item !== value
-                );
-            } else return [
-                ...new Set([
-                    ...currentValue,
-                    value
-                ])
-            ];
-        } else if (typeof currentValue === "boolean") return Boolean(target.checked);
-        else return target.value;
-    }, []);
     const createChangeHandler = _react.useCallback((name)=>(event)=>{
             const targetElement = event.target;
-            const newValue = getNewValue(targetElement, valuesStore[name].value);
-            console.log(newValue);
+            const newValue = _helpers.getNewFieldValue(targetElement, valuesStore[name].value);
+            _helpers.setFieldValue(event.target, newValue);
             valuesStore[name].set(newValue);
         }
     , [
-        getNewValue,
         valuesStore
     ]);
     const bind = _react.useCallback((name)=>{
@@ -30596,14 +30840,25 @@ function useFormixTest(schema, { validate =_helpers.defaultValidate  } = {
         return {
             as: getFieldSchema(name).as,
             ref,
+            name,
             onChange
         };
     }, [
         createChangeHandler,
-        createRefHandler
+        createRefHandler,
+        getFieldSchema
+    ]);
+    _react.useEffect(()=>{
+        setValues(initialValues);
+    }, [
+        fieldsSchemaContentKeys,
+        formElements,
+        initialValues,
+        setValues
     ]);
     return {
-        bind
+        bind,
+        getValues
     };
 }
 
@@ -30612,6 +30867,108 @@ function useFormixTest(schema, { validate =_helpers.defaultValidate  } = {
   window.$RefreshReg$ = prevRefreshReg;
   window.$RefreshSig$ = prevRefreshSig;
 }
-},{"react":"21dqq","mobx-react-lite":"e0C8P","../config":"gTux2","./helpers":"02pPt","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"km3Ru"}]},["kn9T2","3roF5","fYFBV"], "fYFBV", "parcelRequirecffe")
+},{"react":"21dqq","mobx-react-lite":"e0C8P","../config":"gTux2","./helpers":"02pPt","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","@parcel/transformer-react-refresh-wrap/lib/helpers/helpers.js":"km3Ru","react-fast-compare":"isHbY"}],"isHbY":[function(require,module,exports) {
+/* global Map:readonly, Set:readonly, ArrayBuffer:readonly */ var hasElementType = typeof Element !== 'undefined';
+var hasMap = typeof Map === 'function';
+var hasSet = typeof Set === 'function';
+var hasArrayBuffer = typeof ArrayBuffer === 'function' && !!ArrayBuffer.isView;
+// Note: We **don't** need `envHasBigInt64Array` in fde es6/index.js
+function equal(a, b) {
+    // START: fast-deep-equal es6/index.js 3.1.1
+    if (a === b) return true;
+    if (a && b && typeof a == 'object' && typeof b == 'object') {
+        if (a.constructor !== b.constructor) return false;
+        var length, i, keys;
+        if (Array.isArray(a)) {
+            length = a.length;
+            if (length != b.length) return false;
+            for(i = length; (i--) !== 0;)if (!equal(a[i], b[i])) return false;
+            return true;
+        }
+        // START: Modifications:
+        // 1. Extra `has<Type> &&` helpers in initial condition allow es6 code
+        //    to co-exist with es5.
+        // 2. Replace `for of` with es5 compliant iteration using `for`.
+        //    Basically, take:
+        //
+        //    ```js
+        //    for (i of a.entries())
+        //      if (!b.has(i[0])) return false;
+        //    ```
+        //
+        //    ... and convert to:
+        //
+        //    ```js
+        //    it = a.entries();
+        //    while (!(i = it.next()).done)
+        //      if (!b.has(i.value[0])) return false;
+        //    ```
+        //
+        //    **Note**: `i` access switches to `i.value`.
+        var it;
+        if (hasMap && a instanceof Map && b instanceof Map) {
+            if (a.size !== b.size) return false;
+            it = a.entries();
+            while(!(i = it.next()).done)if (!b.has(i.value[0])) return false;
+            it = a.entries();
+            while(!(i = it.next()).done)if (!equal(i.value[1], b.get(i.value[0]))) return false;
+            return true;
+        }
+        if (hasSet && a instanceof Set && b instanceof Set) {
+            if (a.size !== b.size) return false;
+            it = a.entries();
+            while(!(i = it.next()).done)if (!b.has(i.value[0])) return false;
+            return true;
+        }
+        // END: Modifications
+        if (hasArrayBuffer && ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) {
+            length = a.length;
+            if (length != b.length) return false;
+            for(i = length; (i--) !== 0;)if (a[i] !== b[i]) return false;
+            return true;
+        }
+        if (a.constructor === RegExp) return a.source === b.source && a.flags === b.flags;
+        if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf();
+        if (a.toString !== Object.prototype.toString) return a.toString() === b.toString();
+        keys = Object.keys(a);
+        length = keys.length;
+        if (length !== Object.keys(b).length) return false;
+        for(i = length; (i--) !== 0;)if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
+        // END: fast-deep-equal
+        // START: react-fast-compare
+        // custom handling for DOM elements
+        if (hasElementType && a instanceof Element) return false;
+        // custom handling for React/Preact
+        for(i = length; (i--) !== 0;){
+            if ((keys[i] === '_owner' || keys[i] === '__v' || keys[i] === '__o') && a.$$typeof) continue;
+            // all other properties should be traversed as usual
+            if (!equal(a[keys[i]], b[keys[i]])) return false;
+        }
+        // END: react-fast-compare
+        // START: fast-deep-equal
+        return true;
+    }
+    return a !== a && b !== b;
+}
+// end fast-deep-equal
+module.exports = function isEqual(a, b) {
+    try {
+        return equal(a, b);
+    } catch (error) {
+        if ((error.message || '').match(/stack|recursion/i)) {
+            // warn on circular references, don't crash
+            // browsers give this different errors name and messages:
+            // chrome/safari: "RangeError", "Maximum call stack size exceeded"
+            // firefox: "InternalError", too much recursion"
+            // edge: "Error", "Out of stack space"
+            console.warn('react-fast-compare cannot handle circular refs');
+            return false;
+        }
+        // some other error. we should definitely know about these
+        throw error;
+    }
+};
+
+},{}]},["kn9T2","3roF5","fYFBV"], "fYFBV", "parcelRequirecffe")
 
 //# sourceMappingURL=index.58c84345.js.map
