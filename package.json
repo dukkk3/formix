@@ -1,5 +1,5 @@
 {
-	"name": "formix",
+	"name": "react-formix",
 	"version": "1.0.0",
 	"description": "",
 	"source": "src/index.ts",
