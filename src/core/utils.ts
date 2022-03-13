@@ -2,8 +2,8 @@ export function deepObjectEntries<T extends Record<string, any>>(
 	object: T,
 	conditionFn?: (key: string, value: any) => boolean
 ) {
-	const entries: [key: string, value: any][] = [];
 	const keys = Object.keys(object);
+	const entries: [key: string, value: any][] = [];
 
 	for (const key of keys) {
 		const value = object[key];
@@ -34,6 +34,36 @@ export function pickProperties<T, K extends keyof T>(object: T, ...keys: K[]) {
 	return Object.fromEntries(filteredEntries) as Pick<T, K>;
 }
 
+export function mergeRefs<E = Element>(...refs: (React.ForwardedRef<any> | null | undefined)[]) {
+	const filteredRefs = refs.filter(Boolean);
+
+	if (filteredRefs.length === 0) {
+		return null;
+	}
+
+	return (instance: E | null) => {
+		for (const ref of filteredRefs) {
+			if (typeof ref === "function") {
+				ref(instance);
+			} else if (ref) {
+				ref.current = instance;
+			}
+		}
+	};
+}
+
 export function removeDuplicateElements<T>(array: T[]) {
-	return [...new Set(array)];
+	return Array.from(new Set(array));
+}
+
+export function isSelectElement(element: Element): element is HTMLSelectElement {
+	return element.tagName.toLowerCase() === "select";
+}
+
+export function isTextAreaElement(element: Element): element is HTMLTextAreaElement {
+	return element.tagName.toLocaleLowerCase() === "textarea";
+}
+
+export function isInputElement(element: Element): element is HTMLInputElement {
+	return element.tagName.toLocaleLowerCase() === "input";
 }

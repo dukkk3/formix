@@ -20,6 +20,5 @@
 		"experimentalDecorators": true,
 		"jsx": "react-jsx"
 	},
-	"extends": "./tsconfig.paths.json",
-	"include": ["src"]
+	"include": ["src", "tests"]
 }
