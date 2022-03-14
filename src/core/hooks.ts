@@ -197,7 +197,6 @@ export function useFormix<
 	const createRefHandler = useCallback(
 		(name: NF) => (element: FormElementPrimitive | null) => {
 			connectFormElement(name, element);
-			console.log(formElementsRef.current[name]);
 			syncFormFields(name, valuesStore[name].value);
 		},
 		[connectFormElement, syncFormFields, valuesStore]
