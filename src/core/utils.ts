@@ -71,3 +71,17 @@ export function isTextAreaElement(element: Element): element is HTMLTextAreaElem
 export function isInputElement(element: Element): element is HTMLInputElement {
 	return element.tagName.toLocaleLowerCase() === "input";
 }
+
+export function mergeCallbacks<T extends Function>(...callbacks: (T | null | undefined)[]) {
+	const filteredCallbacks = callbacks.filter(Boolean) as T[];
+
+	if (filteredCallbacks.length === 0) {
+		return null;
+	}
+
+	return (...args: any[]) => {
+		for (const callback of filteredCallbacks) {
+			callback(...args);
+		}
+	};
+}

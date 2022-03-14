@@ -12,7 +12,13 @@ import {
 	collectFieldsValues,
 	isFieldValuePrimitive,
 } from "./helpers";
-import { pickProperties, removeDuplicateElements, removeUnusedElement } from "./utils";
+import {
+	mergeCallbacks,
+	mergeRefs,
+	pickProperties,
+	removeDuplicateElements,
+	removeUnusedElement,
+} from "./utils";
 
 import type {
 	ArrayShift,
@@ -213,11 +219,18 @@ export function useFormix<
 	);
 
 	const bind = useCallback(
-		(name: NF, alternativeName?: string) => {
+		(
+			name: NF,
+			options?: Partial<{
+				ref: React.RefObject<any>;
+				newName: string;
+				onChange: React.ChangeEventHandler<any>;
+			}>
+		) => {
 			return {
-				name: alternativeName || name,
-				ref: createRefHandler(name),
-				onChange: createChangeHandler(name),
+				name: options?.newName || name,
+				ref: mergeRefs(createRefHandler(name), options?.ref),
+				onChange: mergeCallbacks(createChangeHandler(name), options?.onChange),
 			};
 		},
 		[createChangeHandler, createRefHandler]
@@ -291,7 +304,13 @@ export function useFormix<
 	const $ = useCallback(
 		<N extends NF>(name: N) => {
 			return {
-				bind: (alternativeName?: string) => bind(name, alternativeName),
+				bind: (
+					options?: Partial<{
+						ref: React.RefObject<any>;
+						newName: string;
+						onChange: React.ChangeEventHandler<any>;
+					}>
+				) => bind(name, options),
 				isValid: () => isValid(name as any),
 				validate: () => validate(name as any),
 				getError: () => getError(name),
@@ -336,7 +355,11 @@ export type UseFormixReturnType<
 > = {
 	bind: (
 		name: NF,
-		alternativeName?: string
+		options?: Partial<{
+			ref: React.RefObject<any>;
+			newName: string;
+			onChange: React.ChangeEventHandler<any>;
+		}>
 	) => {
 		name: NF | string;
 		ref: React.RefObject<any>;

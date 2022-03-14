@@ -96,6 +96,13 @@ function $41737727779803e2$export$fc7b8ce0aa07b7de(element) {
 function $41737727779803e2$export$63ed1d20cf8213cf(element) {
     return element.tagName.toLocaleLowerCase() === "input";
 }
+function $41737727779803e2$export$f05a241035b5c5eb(...callbacks) {
+    const filteredCallbacks = callbacks.filter(Boolean);
+    if (filteredCallbacks.length === 0) return null;
+    return (...args)=>{
+        for (const callback of filteredCallbacks)callback(...args);
+    };
+}
 
 
 function $7e043fd2f1fe1b7b$export$2f8469872c305b85(schema) {
@@ -392,11 +399,11 @@ function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
         setValue,
         valuesStore
     ]);
-    const bind = $3hEOU$react.useCallback((name, alternativeName)=>{
+    const bind = $3hEOU$react.useCallback((name, options)=>{
         return {
-            name: alternativeName || name,
-            ref: createRefHandler(name),
-            onChange: createChangeHandler(name)
+            name: options?.newName || name,
+            ref: $41737727779803e2$export$c9058316764c140e(createRefHandler(name), options?.ref),
+            onChange: $41737727779803e2$export$f05a241035b5c5eb(createChangeHandler(name), options?.onChange)
         };
     }, [
         createChangeHandler,
@@ -457,7 +464,7 @@ function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
     ]);
     const $ = $3hEOU$react.useCallback((name)=>{
         return {
-            bind: (alternativeName)=>bind(name, alternativeName)
+            bind: (options)=>bind(name, options)
             ,
             isValid: ()=>isValid(name)
             ,

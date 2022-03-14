@@ -11,7 +11,6 @@ type FieldSchemaBase<T extends any> = {
 };
 type ValidateFn = (value: FormValuePrimitive, fieldName: string) => Promise<string> | string;
 type FormSchemaBase = Record<string, any>;
-type FormElementPrimitive = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FormSchemaPrimitive = FormValuePrimitive | FieldSchema<any>;
 type FormValuePrimitive = string | boolean | string[];
 type ConvertToFormPrimitiveValue<T extends any> = T extends any[] ? string[] : T extends FormValuePrimitive ? T extends string ? string : T extends boolean ? boolean : T : never;
@@ -55,10 +54,14 @@ export function fieldFactory<T extends AliasBase, D extends keyof T>(alias: T, d
 }) => JSX.Element;
 export function useFormix<T extends FormSchemaBase, U extends FormSchema<T>["FORM_SCHEMA"], F extends U["fields"], G extends U["groups"], NF extends keyof F, NG extends keyof G>(schema: T | FormSchema<T>): {
     $: <N extends NF>(name: N) => {
-        bind: (alternativeName?: string | undefined) => {
+        bind: (options?: Partial<{
+            ref: React.RefObject<any>;
+            newName: string;
+            onChange: React.ChangeEventHandler<any>;
+        }> | undefined) => {
             name: string;
-            ref: (element: FormElementPrimitive | null) => void;
-            onChange: (event: React.ChangeEvent<FormElementPrimitive>) => void;
+            ref: ((instance: Element | null) => void) | null;
+            onChange: ((...args: any[]) => void) | null;
         };
         isValid: () => Promise<boolean>;
         validate: () => Promise<boolean>;
@@ -67,10 +70,14 @@ export function useFormix<T extends FormSchemaBase, U extends FormSchema<T>["FOR
         setError: (error: string) => void;
         setValue: <V extends import("core/types").ConvertToFormPrimitiveValue<F[N]["FIELD_SCHEMA"]["defaultValue"]>>(value: V | ((prevValue: V) => V)) => void;
     };
-    bind: (name: NF, alternativeName?: string | undefined) => {
+    bind: (name: NF, options?: Partial<{
+        ref: React.RefObject<any>;
+        newName: string;
+        onChange: React.ChangeEventHandler<any>;
+    }> | undefined) => {
         name: string;
-        ref: (element: FormElementPrimitive | null) => void;
-        onChange: (event: React.ChangeEvent<FormElementPrimitive>) => void;
+        ref: ((instance: Element | null) => void) | null;
+        onChange: ((...args: any[]) => void) | null;
     };
     isValid: (target?: NG | undefined) => Promise<boolean>;
     getError: (name: NF) => Record<NF, string>[NF];
@@ -84,7 +91,11 @@ export function useFormix<T extends FormSchemaBase, U extends FormSchema<T>["FOR
     validate: (target?: NG | undefined) => Promise<boolean>;
 };
 type UseFormixReturnType<T extends FormSchemaBase, U extends FormSchema<T>["FORM_SCHEMA"] = FormSchema<T>["FORM_SCHEMA"], F extends U["fields"] = U["fields"], G extends U["groups"] = U["groups"], NF extends keyof F = keyof F, NG extends keyof G = keyof G> = {
-    bind: (name: NF, alternativeName?: string) => {
+    bind: (name: NF, options?: Partial<{
+        ref: React.RefObject<any>;
+        newName: string;
+        onChange: React.ChangeEventHandler<any>;
+    }>) => {
         name: NF | string;
         ref: React.RefObject<any>;
         onChange: React.ChangeEventHandler<any>;
