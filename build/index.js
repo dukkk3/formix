@@ -14,6 +14,7 @@ function $parcel$interopDefault(a) {
 $parcel$export(module.exports, "Formix", () => $7892bab7f326bed4$export$76ac2dc60f7a3f13);
 $parcel$export(module.exports, "Field", () => $2d7505cde7b5bbb4$export$a455218a85c89869);
 $parcel$export(module.exports, "useFormix", () => $bd0e33c45dfac056$export$d1fb35b153c8c186);
+$parcel$export(module.exports, "useField", () => $bd0e33c45dfac056$export$294aa081a6c6f55d);
 $parcel$export(module.exports, "formSchema", () => $7e043fd2f1fe1b7b$export$2f8469872c305b85);
 $parcel$export(module.exports, "field", () => $7e043fd2f1fe1b7b$export$e0f35d825088c098);
 $parcel$export(module.exports, "validateFactory", () => $7e043fd2f1fe1b7b$export$af85c40c8b614364);
@@ -81,6 +82,10 @@ function $41737727779803e2$export$c9058316764c140e(...refs) {
 }
 function $41737727779803e2$export$30e8f3c2ef73c7a3(array) {
     return Array.from(new Set(array));
+}
+function $41737727779803e2$export$6d35aad4de0e7b1(elements) {
+    return elements.filter((element)=>document.body.contains(element)
+    );
 }
 function $41737727779803e2$export$dcfe1c11d168b5a1(element) {
     return element.tagName.toLowerCase() === "select";
@@ -165,16 +170,7 @@ function $7e043fd2f1fe1b7b$export$45688d1308b4bdba(alias, def) {
         }));
     }));
 }
-function $7e043fd2f1fe1b7b$export$64642993423e800f(ref) {
-    return(/*#__PURE__*/ $3hEOU$react.forwardRef((props, additionalRef)=>{
-        return(/*#__PURE__*/ $3hEOU$reactjsxruntime.jsx("form", {
-            ...props,
-            ref: $41737727779803e2$export$c9058316764c140e(ref, additionalRef)
-        }));
-    }));
-}
-function $7e043fd2f1fe1b7b$export$6c11848892def96c(name, value, form) {
-    const fields = form.querySelectorAll(`[name="${name}"]`);
+function $7e043fd2f1fe1b7b$export$6c11848892def96c(fields, value) {
     if (Array.isArray(value)) fields.forEach(($7e043fd2f1fe1b7b$export$e0f35d825088c098)=>{
         if ($41737727779803e2$export$dcfe1c11d168b5a1($7e043fd2f1fe1b7b$export$e0f35d825088c098)) $7e043fd2f1fe1b7b$export$e0f35d825088c098.querySelectorAll("option").forEach((option)=>option.selected = value.includes(option.value)
         );
@@ -231,9 +227,8 @@ function $bd0e33c45dfac056$export$f5b97ae82d1eeaf3(base) {
 }
 function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
     const schemaRef = $3hEOU$react.useRef(schema);
-    const formRef = $3hEOU$react.useRef(null);
-    const Form = $3hEOU$react.useMemo(()=>$7e043fd2f1fe1b7b$export$64642993423e800f(formRef)
-    , []);
+    const formElementsRef = $3hEOU$react.useRef({
+    });
     if (!($parcel$interopDefault($3hEOU$reactfastcompare))(schemaRef.current, schema) || schema !== schemaRef.current) schemaRef.current = schema;
     const preparedSchema = $3hEOU$react.useMemo(()=>$7e043fd2f1fe1b7b$export$2f8469872c305b85(schemaRef.current)
     , // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -301,9 +296,15 @@ function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
     ]);
     const errorsStore = $bd0e33c45dfac056$export$f5b97ae82d1eeaf3(defaultErrors);
     const valuesStore = $bd0e33c45dfac056$export$f5b97ae82d1eeaf3(defaultValues);
+    const connectFormElement = $3hEOU$react.useCallback((name, element)=>{
+        const formElements = formElementsRef.current;
+        if (!formElements[name]) formElements[name] = [];
+        if (element) formElements[name].push(element);
+        formElements[name] = $41737727779803e2$export$30e8f3c2ef73c7a3($41737727779803e2$export$6d35aad4de0e7b1(formElements[name]));
+    }, []);
     const syncFormFields = $3hEOU$react.useCallback((name, value)=>{
-        const formElement = formRef.current;
-        if (formElement) $7e043fd2f1fe1b7b$export$6c11848892def96c(name, value, formElement);
+        const formElements = formElementsRef.current;
+        if (formElements[name] && formElements[name].length) $7e043fd2f1fe1b7b$export$6c11848892def96c(formElements[name], value);
     }, []);
     const setValues = $3hEOU$react.useCallback((values)=>{
         fieldsNames.forEach((name)=>{
@@ -371,10 +372,12 @@ function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
     }, [
         errorsStore
     ]);
-    const createRefHandler = $3hEOU$react.useCallback((name)=>()=>{
+    const createRefHandler = $3hEOU$react.useCallback((name)=>(element)=>{
+            connectFormElement(name, element);
             syncFormFields(name, valuesStore[name].value);
         }
     , [
+        connectFormElement,
         syncFormFields,
         valuesStore
     ]);
@@ -389,9 +392,9 @@ function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
         setValue,
         valuesStore
     ]);
-    const bind = $3hEOU$react.useCallback((name)=>{
+    const bind = $3hEOU$react.useCallback((name, alternativeName)=>{
         return {
-            name: name,
+            name: alternativeName || name,
             ref: createRefHandler(name),
             onChange: createChangeHandler(name)
         };
@@ -399,11 +402,6 @@ function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
         createChangeHandler,
         createRefHandler
     ]);
-    const bindForm = $3hEOU$react.useCallback(()=>{
-        return {
-            ref: formRef
-        };
-    }, []);
     const getValidationErrors = $3hEOU$react.useCallback(async (target)=>{
         const fields = target ? pickGroupSchema(target) ? pickGroupSchema(target) : [
             target
@@ -459,7 +457,7 @@ function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
     ]);
     const $ = $3hEOU$react.useCallback((name)=>{
         return {
-            bind: ()=>bind(name)
+            bind: (alternativeName)=>bind(name, alternativeName)
             ,
             isValid: ()=>isValid(name)
             ,
@@ -494,7 +492,6 @@ function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
     return {
         $: $,
         bind: bind,
-        Form: Form,
         isValid: isValid,
         getError: getError,
         getErrors: getErrors,
@@ -504,14 +501,21 @@ function $bd0e33c45dfac056$export$d1fb35b153c8c186(schema) {
         getValues: getValues,
         setValue: setValue,
         setValues: setValues,
-        validate: validate1,
-        bindForm: bindForm
+        validate: validate1
     };
+}
+function $bd0e33c45dfac056$export$294aa081a6c6f55d(name, schemaOrDefaultValue) {
+    const { $: $  } = $bd0e33c45dfac056$export$d1fb35b153c8c186({
+        [name]: $7e043fd2f1fe1b7b$export$23983dbdd416fdc9(schemaOrDefaultValue) ? $7e043fd2f1fe1b7b$export$e0f35d825088c098({
+            defaultValue: schemaOrDefaultValue
+        }) : $7e043fd2f1fe1b7b$export$e0f35d825088c098(schemaOrDefaultValue)
+    });
+    return $(name);
 }
 
 
 const $7892bab7f326bed4$export$76ac2dc60f7a3f13 = /*#__PURE__*/ $3hEOU$react.forwardRef(({ schema: schema , children: children , onSubmit: onSubmit , ...rest }, ref)=>{
-    const { Form: Form , ...formix } = $bd0e33c45dfac056$export$d1fb35b153c8c186(schema);
+    const formix = $bd0e33c45dfac056$export$d1fb35b153c8c186(schema);
     const handleSubmit = $3hEOU$react.useCallback(async (event)=>{
         event.preventDefault();
         const isValid = await formix.validate();
@@ -526,7 +530,7 @@ const $7892bab7f326bed4$export$76ac2dc60f7a3f13 = /*#__PURE__*/ $3hEOU$react.for
         formix,
         onSubmit
     ]);
-    return(/*#__PURE__*/ $3hEOU$reactjsxruntime.jsx(Form, {
+    return(/*#__PURE__*/ $3hEOU$reactjsxruntime.jsx("form", {
         ref: ref,
         onSubmit: handleSubmit,
         ...rest,

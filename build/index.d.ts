@@ -14,7 +14,7 @@ type FormSchemaBase = Record<string, any>;
 type FormElementPrimitive = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 type FormSchemaPrimitive = FormValuePrimitive | FieldSchema<any>;
 type FormValuePrimitive = string | boolean | string[];
-type ConvertToFormPrimitiveValue<T extends any> = T extends any[] ? string[] : T extends FormValuePrimitive ? T : never;
+type ConvertToFormPrimitiveValue<T extends any> = T extends any[] ? string[] : T extends FormValuePrimitive ? T extends string ? string : T extends boolean ? boolean : T : never;
 type ConvertFieldToFormPrimitiveValue<T extends FieldSchema<any>> = ConvertToFormPrimitiveValue<T["FIELD_SCHEMA"]["defaultValue"]>;
 type FieldSchema<T extends any> = {
     [key in FieldSchemaSymbol]: FieldSchemaBase<T>;
@@ -55,9 +55,9 @@ export function fieldFactory<T extends AliasBase, D extends keyof T>(alias: T, d
 }) => JSX.Element;
 export function useFormix<T extends FormSchemaBase, U extends FormSchema<T>["FORM_SCHEMA"], F extends U["fields"], G extends U["groups"], NF extends keyof F, NG extends keyof G>(schema: T | FormSchema<T>): {
     $: <N extends NF>(name: N) => {
-        bind: () => {
-            name: NF;
-            ref: () => void;
+        bind: (alternativeName?: string | undefined) => {
+            name: string;
+            ref: (element: FormElementPrimitive | null) => void;
             onChange: (event: React.ChangeEvent<FormElementPrimitive>) => void;
         };
         isValid: () => Promise<boolean>;
@@ -67,12 +67,11 @@ export function useFormix<T extends FormSchemaBase, U extends FormSchema<T>["FOR
         setError: (error: string) => void;
         setValue: <V extends import("core/types").ConvertToFormPrimitiveValue<F[N]["FIELD_SCHEMA"]["defaultValue"]>>(value: V | ((prevValue: V) => V)) => void;
     };
-    bind: (name: NF) => {
-        name: NF;
-        ref: () => void;
+    bind: (name: NF, alternativeName?: string | undefined) => {
+        name: string;
+        ref: (element: FormElementPrimitive | null) => void;
         onChange: (event: React.ChangeEvent<FormElementPrimitive>) => void;
     };
-    Form: React.ForwardRefExoticComponent<Pick<React.DetailedHTMLProps<React.FormHTMLAttributes<HTMLFormElement>, HTMLFormElement>, "key" | keyof React.FormHTMLAttributes<HTMLFormElement>> & React.RefAttributes<HTMLFormElement>>;
     isValid: (target?: NG | undefined) => Promise<boolean>;
     getError: (name: NF) => Record<NF, string>[NF];
     getErrors: () => Record<NF, string>;
@@ -83,19 +82,13 @@ export function useFormix<T extends FormSchemaBase, U extends FormSchema<T>["FOR
     setValue: <N_2 extends NF, V_1 extends import("core/types").ConvertToFormPrimitiveValue<F[N_2]["FIELD_SCHEMA"]["defaultValue"]>>(name: N_2, value: V_1 | ((prevValue: V_1) => V_1)) => void;
     setValues: (values: Partial<{ [K_1 in NF]: import("core/types").ConvertToFormPrimitiveValue<F[K_1]["FIELD_SCHEMA"]["defaultValue"]>; }>) => void;
     validate: (target?: NG | undefined) => Promise<boolean>;
-    bindForm: () => {
-        ref: React.RefObject<HTMLFormElement>;
-    };
 };
 type UseFormixReturnType<T extends FormSchemaBase, U extends FormSchema<T>["FORM_SCHEMA"] = FormSchema<T>["FORM_SCHEMA"], F extends U["fields"] = U["fields"], G extends U["groups"] = U["groups"], NF extends keyof F = keyof F, NG extends keyof G = keyof G> = {
-    bind: (name: NF) => {
-        name: NF;
+    bind: (name: NF, alternativeName?: string) => {
+        name: NF | string;
         ref: React.RefObject<any>;
         onChange: React.ChangeEventHandler<any>;
     };
-    Form: (props: React.ComponentProps<"form"> & {
-        ref: React.RefObject<HTMLFormElement>;
-    }) => JSX.Element;
     isValid: (target?: NG) => Promise<boolean>;
     validate: (target?: NG) => Promise<boolean>;
     getError: (name: NF) => string;
@@ -110,13 +103,13 @@ type UseFormixReturnType<T extends FormSchemaBase, U extends FormSchema<T>["FORM
     setValues: (values: Partial<{
         [K in NF]: ConvertFieldToFormPrimitiveValue<F[K]>;
     }>) => void;
-    bindForm: () => {
-        ref: React.RefObject<HTMLFormElement>;
-    };
     $: <N extends NF>(name: N) => {
-        [K in keyof Omit<UseFormixReturnType<T, U, F, G, N, NG>, "$" | "getValues" | "getErrors" | "setErrors" | "setValues" | "Form" | "bindForm">]: (...params: ArrayShift<Parameters<UseFormixReturnType<T, U, F, G, N, NG>[K]>>) => ReturnType<UseFormixReturnType<T, U, F, G, N, NG>[K]>;
+        [K in keyof Omit<UseFormixReturnType<T, U, F, G, N, NG>, "$" | "getValues" | "getErrors" | "setErrors" | "setValues">]: (...params: ArrayShift<Parameters<UseFormixReturnType<T, U, F, G, N, NG>[K]>>) => ReturnType<UseFormixReturnType<T, U, F, G, N, NG>[K]>;
     };
 };
+export function useField<T extends string, V extends FormValuePrimitive>(name: T, schemaOrDefaultValue: V | FieldSchemaBase<V>): ReturnType<UseFormixReturnType<{
+    [key in T]: V;
+}>["$"]>;
 export const Formix: <T extends FormSchemaBase>(props: Props<T> & {
     ref?: React.ForwardedRef<HTMLFormElement> | undefined;
 }) => JSX.Element;

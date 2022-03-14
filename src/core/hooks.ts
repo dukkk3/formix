@@ -5,12 +5,12 @@ import isDeepEqual from "react-fast-compare";
 import { FORM_SCHEMA_SYMBOL, FIELD_SCHEMA_SYMBOL } from "../constants";
 
 import {
+	field,
 	formSchema,
 	storeSchema,
 	syncFieldsValues,
 	collectFieldsValues,
 	isFieldValuePrimitive,
-	field,
 } from "./helpers";
 import { pickProperties, removeDuplicateElements, removeUnusedElement } from "./utils";
 
@@ -19,11 +19,10 @@ import type {
 	ValidateFn,
 	FormSchema,
 	FormSchemaBase,
+	FieldSchemaBase,
 	FormValuePrimitive,
 	FormElementPrimitive,
 	ConvertFieldToFormPrimitiveValue,
-	FieldSchemaBase,
-	FieldSchema,
 } from "./types";
 
 export function useLocalStore<T extends Record<string, any>>(base: T) {
