@@ -55,13 +55,13 @@ export function fieldFactory<T extends AliasBase, D extends keyof T>(alias: T, d
 export function useFormix<T extends FormSchemaBase, U extends FormSchema<T>["FORM_SCHEMA"], F extends U["fields"], G extends U["groups"], NF extends keyof F, NG extends keyof G>(schema: T | FormSchema<T>): {
     $: <N extends NF>(name: N) => {
         bind: (options?: Partial<{
-            ref: React.RefObject<any>;
+            ref: React.ForwardedRef<any>;
             newName: string;
             onChange: React.ChangeEventHandler<any>;
         }> | undefined) => {
             name: string;
-            ref: ((instance: Element | null) => void) | null;
-            onChange: ((...args: any[]) => void) | null;
+            ref: any;
+            onChange: any;
         };
         isValid: () => Promise<boolean>;
         validate: () => Promise<boolean>;
@@ -71,13 +71,13 @@ export function useFormix<T extends FormSchemaBase, U extends FormSchema<T>["FOR
         setValue: <V extends import("core/types").ConvertToFormPrimitiveValue<F[N]["FIELD_SCHEMA"]["defaultValue"]>>(value: V | ((prevValue: V) => V)) => void;
     };
     bind: (name: NF, options?: Partial<{
-        ref: React.RefObject<any>;
+        ref: React.ForwardedRef<any>;
         newName: string;
         onChange: React.ChangeEventHandler<any>;
     }> | undefined) => {
         name: string;
-        ref: ((instance: Element | null) => void) | null;
-        onChange: ((...args: any[]) => void) | null;
+        ref: any;
+        onChange: any;
     };
     isValid: (target?: NG | undefined) => Promise<boolean>;
     getError: (name: NF) => Record<NF, string>[NF];
@@ -92,7 +92,7 @@ export function useFormix<T extends FormSchemaBase, U extends FormSchema<T>["FOR
 };
 type UseFormixReturnType<T extends FormSchemaBase, U extends FormSchema<T>["FORM_SCHEMA"] = FormSchema<T>["FORM_SCHEMA"], F extends U["fields"] = U["fields"], G extends U["groups"] = U["groups"], NF extends keyof F = keyof F, NG extends keyof G = keyof G> = {
     bind: (name: NF, options?: Partial<{
-        ref: React.RefObject<any>;
+        ref: React.ForwardedRef<any>;
         newName: string;
         onChange: React.ChangeEventHandler<any>;
     }>) => {

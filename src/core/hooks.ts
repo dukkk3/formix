@@ -222,15 +222,15 @@ export function useFormix<
 		(
 			name: NF,
 			options?: Partial<{
-				ref: React.RefObject<any>;
+				ref: React.ForwardedRef<any>;
 				newName: string;
 				onChange: React.ChangeEventHandler<any>;
 			}>
 		) => {
 			return {
 				name: options?.newName || name,
-				ref: mergeRefs(createRefHandler(name), options?.ref),
-				onChange: mergeCallbacks(createChangeHandler(name), options?.onChange),
+				ref: mergeRefs(createRefHandler(name), options?.ref) as any,
+				onChange: mergeCallbacks(createChangeHandler(name), options?.onChange) as any,
 			};
 		},
 		[createChangeHandler, createRefHandler]
@@ -306,7 +306,7 @@ export function useFormix<
 			return {
 				bind: (
 					options?: Partial<{
-						ref: React.RefObject<any>;
+						ref: React.ForwardedRef<any>;
 						newName: string;
 						onChange: React.ChangeEventHandler<any>;
 					}>
@@ -356,7 +356,7 @@ export type UseFormixReturnType<
 	bind: (
 		name: NF,
 		options?: Partial<{
-			ref: React.RefObject<any>;
+			ref: React.ForwardedRef<any>;
 			newName: string;
 			onChange: React.ChangeEventHandler<any>;
 		}>

@@ -117,7 +117,6 @@ export function fieldFactory<T extends AliasBase, D extends keyof T>(
 
 export function fieldFactory(alias: any, def?: any) {
 	return forwardRef(({ as, ...rest }: any, ref: any) => {
-		// @ts-ignore
 		const Component = alias[def || as];
 		return <>{Component ? <Component ref={ref} {...(rest as any)} /> : null}</>;
 	}) as any;
@@ -168,16 +167,16 @@ export function collectFieldsValues(field: FormElementPrimitive, value: FormValu
 				: removeDuplicateElements(selectedOptionsValues);
 		} else if (isInputElement(field) && CHECKED_INPUT_TYPES.includes(field.type)) {
 			return removeDuplicateElements(
-				field.checked ? [...value, field.value] : value.filter((value) => value !== field.value)
+				field.checked ? [...value, String(field.value)] : value.filter((value) => value !== field.value)
 			);
 		} else if (isInputElement(field) || isTextAreaElement(field)) {
-			return [field.value];
+			return [field.value || ""];
 		}
 	} else if (typeof value === "boolean" && isInputElement(field)) {
-		return field.checked;
+		return Boolean(field.checked);
 	}
 
-	return field.value;
+	return String(field.value);
 }
 
 export function isFieldSchema(object: any): object is FieldSchema<any> {

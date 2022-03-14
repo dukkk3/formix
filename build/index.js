@@ -167,7 +167,6 @@ function $7e043fd2f1fe1b7b$export$766e40e6a2c668c1(...args) {
 }
 function $7e043fd2f1fe1b7b$export$45688d1308b4bdba(alias, def) {
     return(/*#__PURE__*/ $3hEOU$react.forwardRef(({ as: as , ...rest }, ref)=>{
-        // @ts-ignore
         const Component = alias[def || as];
         return(/*#__PURE__*/ $3hEOU$reactjsxruntime.jsx($3hEOU$reactjsxruntime.Fragment, {
             children: Component ? /*#__PURE__*/ $3hEOU$reactjsxruntime.jsx(Component, {
@@ -207,14 +206,14 @@ function $7e043fd2f1fe1b7b$export$ffb5f384678b9e61($7e043fd2f1fe1b7b$export$e0f3
             ]) : $41737727779803e2$export$30e8f3c2ef73c7a3(selectedOptionsValues);
         } else if ($41737727779803e2$export$63ed1d20cf8213cf($7e043fd2f1fe1b7b$export$e0f35d825088c098) && $af8d31735c159a26$export$27abf539e6b2ab49.includes($7e043fd2f1fe1b7b$export$e0f35d825088c098.type)) return $41737727779803e2$export$30e8f3c2ef73c7a3($7e043fd2f1fe1b7b$export$e0f35d825088c098.checked ? [
             ...value1,
-            $7e043fd2f1fe1b7b$export$e0f35d825088c098.value
+            String($7e043fd2f1fe1b7b$export$e0f35d825088c098.value)
         ] : value1.filter((value)=>value !== $7e043fd2f1fe1b7b$export$e0f35d825088c098.value
         ));
         else if ($41737727779803e2$export$63ed1d20cf8213cf($7e043fd2f1fe1b7b$export$e0f35d825088c098) || $41737727779803e2$export$fc7b8ce0aa07b7de($7e043fd2f1fe1b7b$export$e0f35d825088c098)) return [
-            $7e043fd2f1fe1b7b$export$e0f35d825088c098.value
+            $7e043fd2f1fe1b7b$export$e0f35d825088c098.value || ""
         ];
-    } else if (typeof value1 === "boolean" && $41737727779803e2$export$63ed1d20cf8213cf($7e043fd2f1fe1b7b$export$e0f35d825088c098)) return $7e043fd2f1fe1b7b$export$e0f35d825088c098.checked;
-    return $7e043fd2f1fe1b7b$export$e0f35d825088c098.value;
+    } else if (typeof value1 === "boolean" && $41737727779803e2$export$63ed1d20cf8213cf($7e043fd2f1fe1b7b$export$e0f35d825088c098)) return Boolean($7e043fd2f1fe1b7b$export$e0f35d825088c098.checked);
+    return String($7e043fd2f1fe1b7b$export$e0f35d825088c098.value);
 }
 function $7e043fd2f1fe1b7b$export$3eb4689d3997eea5(object) {
     return Boolean(object[$af8d31735c159a26$export$c565007640e081d4]);
