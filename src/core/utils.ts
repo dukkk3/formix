@@ -56,6 +56,10 @@ export function removeDuplicateElements<T>(array: T[]) {
 	return Array.from(new Set(array));
 }
 
+export function removeUnusedElement<T extends Element>(elements: T[]) {
+	return elements.filter((element) => document.body.contains(element));
+}
+
 export function isSelectElement(element: Element): element is HTMLSelectElement {
 	return element.tagName.toLowerCase() === "select";
 }

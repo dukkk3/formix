@@ -3,7 +3,6 @@ import React, { forwardRef } from "react";
 import { FORM_SCHEMA_SYMBOL, FIELD_SCHEMA_SYMBOL, CHECKED_INPUT_TYPES } from "../constants";
 
 import {
-	mergeRefs,
 	isInputElement,
 	isSelectElement,
 	isTextAreaElement,
@@ -124,15 +123,7 @@ export function fieldFactory(alias: any, def?: any) {
 	}) as any;
 }
 
-export function formFactory(ref: React.RefObject<HTMLFormElement>) {
-	return forwardRef<HTMLFormElement, React.ComponentProps<"form">>((props, additionalRef) => {
-		return <form {...props} ref={mergeRefs(ref, additionalRef)} />;
-	});
-}
-
-export function syncFieldsValues(name: string, value: FormValuePrimitive, form: HTMLFormElement) {
-	const fields = form.querySelectorAll(`[name="${name}"]`);
-
+export function syncFieldsValues(fields: FormElementPrimitive[], value: FormValuePrimitive) {
 	if (Array.isArray(value)) {
 		fields.forEach((field) => {
 			if (isSelectElement(field)) {

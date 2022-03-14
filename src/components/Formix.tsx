@@ -5,7 +5,7 @@ import { FormSchemaBase, FormSchema, ConvertFieldToFormPrimitiveValue } from "..
 
 export const Formix = forwardRef(
 	<T extends FormSchemaBase>({ schema, children, onSubmit, ...rest }: Props<T>, ref: any) => {
-		const { Form, ...formix } = useFormix(schema);
+		const formix = useFormix(schema);
 
 		const handleSubmit = useCallback(
 			async (event: React.FormEvent<HTMLFormElement>) => {
@@ -26,9 +26,9 @@ export const Formix = forwardRef(
 		);
 
 		return (
-			<Form ref={ref} onSubmit={handleSubmit} {...rest}>
+			<form ref={ref} onSubmit={handleSubmit} {...rest}>
 				{children(formix as any)}
-			</Form>
+			</form>
 		);
 	}
 ) as <T extends FormSchemaBase>(

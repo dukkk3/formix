@@ -22,7 +22,11 @@ export type FormValuePrimitive = string | boolean | string[];
 export type ConvertToFormPrimitiveValue<T extends any> = T extends any[]
 	? string[]
 	: T extends FormValuePrimitive
-	? T
+	? T extends string
+		? string
+		: T extends boolean
+		? boolean
+		: T
 	: never;
 
 export type ConvertFieldToFormPrimitiveValue<T extends FieldSchema<any>> =

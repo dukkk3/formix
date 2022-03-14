@@ -5,14 +5,14 @@ import isDeepEqual from "react-fast-compare";
 import { FORM_SCHEMA_SYMBOL, FIELD_SCHEMA_SYMBOL } from "../constants";
 
 import {
-	storeSchema,
 	formSchema,
-	formFactory,
-	isFieldValuePrimitive,
+	storeSchema,
 	syncFieldsValues,
 	collectFieldsValues,
+	isFieldValuePrimitive,
+	field,
 } from "./helpers";
-import { pickProperties } from "./utils";
+import { pickProperties, removeDuplicateElements, removeUnusedElement } from "./utils";
 
 import type {
 	ArrayShift,
@@ -22,6 +22,8 @@ import type {
 	FormValuePrimitive,
 	FormElementPrimitive,
 	ConvertFieldToFormPrimitiveValue,
+	FieldSchemaBase,
+	FieldSchema,
 } from "./types";
 
 export function useLocalStore<T extends Record<string, any>>(base: T) {
@@ -37,8 +39,7 @@ export function useFormix<
 	NG extends keyof G
 >(schema: T | FormSchema<T>) {
 	const schemaRef = useRef(schema);
-	const formRef = useRef<HTMLFormElement>(null);
-	const Form = useMemo(() => formFactory(formRef), []);
+	const formElementsRef = useRef<Record<NF, FormElementPrimitive[]>>({} as any);
 
 	if (!isDeepEqual(schemaRef.current, schema) || schema !== schemaRef.current) {
 		schemaRef.current = schema;
@@ -101,11 +102,25 @@ export function useFormix<
 	const errorsStore = useLocalStore(defaultErrors);
 	const valuesStore = useLocalStore(defaultValues);
 
-	const syncFormFields = useCallback((name: NF, value: FormValuePrimitive) => {
-		const formElement = formRef.current;
+	const connectFormElement = useCallback((name: NF, element: FormElementPrimitive | null) => {
+		const formElements = formElementsRef.current;
 
-		if (formElement) {
-			syncFieldsValues(name, value, formElement);
+		if (!formElements[name]) {
+			formElements[name] = [];
+		}
+
+		if (element) {
+			formElements[name].push(element);
+		}
+
+		formElements[name] = removeDuplicateElements(removeUnusedElement(formElements[name]));
+	}, []);
+
+	const syncFormFields = useCallback((name: NF, value: FormValuePrimitive) => {
+		const formElements = formElementsRef.current;
+
+		if (formElements[name] && formElements[name].length) {
+			syncFieldsValues(formElements[name], value);
 		}
 	}, []);
 
@@ -180,10 +195,12 @@ export function useFormix<
 	);
 
 	const createRefHandler = useCallback(
-		(name: NF) => () => {
+		(name: NF) => (element: FormElementPrimitive | null) => {
+			connectFormElement(name, element);
+			console.log(formElementsRef.current[name]);
 			syncFormFields(name, valuesStore[name].value);
 		},
-		[syncFormFields, valuesStore]
+		[connectFormElement, syncFormFields, valuesStore]
 	);
 
 	const createChangeHandler = useCallback(
@@ -198,21 +215,15 @@ export function useFormix<
 	);
 
 	const bind = useCallback(
-		(name: NF) => {
+		(name: NF, alternativeName?: string) => {
 			return {
-				name,
+				name: alternativeName || name,
 				ref: createRefHandler(name),
 				onChange: createChangeHandler(name),
 			};
 		},
 		[createChangeHandler, createRefHandler]
 	);
-
-	const bindForm = useCallback(() => {
-		return {
-			ref: formRef,
-		};
-	}, []);
 
 	const getValidationErrors = useCallback(
 		async (target?: NG) => {
@@ -282,7 +293,7 @@ export function useFormix<
 	const $ = useCallback(
 		<N extends NF>(name: N) => {
 			return {
-				bind: () => bind(name),
+				bind: (alternativeName?: string) => bind(name, alternativeName),
 				isValid: () => isValid(name as any),
 				validate: () => validate(name as any),
 				getError: () => getError(name),
@@ -304,7 +315,6 @@ export function useFormix<
 	return {
 		$,
 		bind,
-		Form,
 		isValid,
 		getError,
 		getErrors,
@@ -315,7 +325,6 @@ export function useFormix<
 		setValue,
 		setValues,
 		validate,
-		bindForm,
 	};
 }
 
@@ -327,14 +336,14 @@ export type UseFormixReturnType<
 	NF extends keyof F = keyof F,
 	NG extends keyof G = keyof G
 > = {
-	bind: (name: NF) => {
-		name: NF;
+	bind: (
+		name: NF,
+		alternativeName?: string
+	) => {
+		name: NF | string;
 		ref: React.RefObject<any>;
 		onChange: React.ChangeEventHandler<any>;
 	};
-	Form: (
-		props: React.ComponentProps<"form"> & { ref: React.RefObject<HTMLFormElement> }
-	) => JSX.Element;
 	isValid: (target?: NG) => Promise<boolean>;
 	validate: (target?: NG) => Promise<boolean>;
 	getError: (name: NF) => string;
@@ -348,15 +357,27 @@ export type UseFormixReturnType<
 		value: ((prevValue: V) => V) | V
 	) => void;
 	setValues: (values: Partial<{ [K in NF]: ConvertFieldToFormPrimitiveValue<F[K]> }>) => void;
-	bindForm: () => { ref: React.RefObject<HTMLFormElement> };
 	$: <N extends NF>(
 		name: N
 	) => {
 		[K in keyof Omit<
 			UseFormixReturnType<T, U, F, G, N, NG>,
-			"$" | "getValues" | "getErrors" | "setErrors" | "setValues" | "Form" | "bindForm"
+			"$" | "getValues" | "getErrors" | "setErrors" | "setValues"
 		>]: (
 			...params: ArrayShift<Parameters<UseFormixReturnType<T, U, F, G, N, NG>[K]>>
 		) => ReturnType<UseFormixReturnType<T, U, F, G, N, NG>[K]>;
 	};
 };
+
+export function useField<T extends string, V extends FormValuePrimitive>(
+	name: T,
+	schemaOrDefaultValue: V | FieldSchemaBase<V>
+): ReturnType<UseFormixReturnType<{ [key in T]: V }>["$"]> {
+	const { $ } = useFormix({
+		[name]: isFieldValuePrimitive(schemaOrDefaultValue)
+			? field({ defaultValue: schemaOrDefaultValue })
+			: field(schemaOrDefaultValue),
+	});
+
+	return $(name) as any;
+}
