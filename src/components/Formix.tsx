@@ -1,7 +1,12 @@
 import React, { forwardRef, useCallback } from "react";
 
 import { useFormix, UseFormixReturnType } from "../core/hooks";
-import { FormSchemaBase, FormSchema, ConvertFieldToFormPrimitiveValue } from "../core/types";
+import type {
+	FormSchema,
+	FormSchemaBase,
+	FormSchemaSymbol,
+	ConvertFieldToFormPrimitiveValue,
+} from "../core/types";
 
 export const Formix = forwardRef(
 	<T extends FormSchemaBase>({ schema, children, onSubmit, ...rest }: Props<T>, ref: any) => {
@@ -40,8 +45,8 @@ export interface Props<T extends FormSchemaBase>
 	schema: T | FormSchema<T>;
 	children: (formix: Omit<UseFormixReturnType<T>, "Form" | "bindForm">) => React.ReactNode;
 	onSubmit?: (values: {
-		[K in keyof FormSchema<T>["FORM_SCHEMA"]["fields"]]: ConvertFieldToFormPrimitiveValue<
-			FormSchema<T>["FORM_SCHEMA"]["fields"][K]
+		[K in keyof FormSchema<T>[FormSchemaSymbol]["fields"]]: ConvertFieldToFormPrimitiveValue<
+			FormSchema<T>[FormSchemaSymbol]["fields"][K]
 		>;
 	}) => void;
 }

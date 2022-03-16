@@ -26,6 +26,7 @@ import type {
 	FormSchema,
 	FormSchemaBase,
 	FieldSchemaBase,
+	FormSchemaSymbol,
 	FormValuePrimitive,
 	FormElementPrimitive,
 	ConvertFieldToFormPrimitiveValue,
@@ -37,7 +38,7 @@ export function useLocalStore<T extends Record<string, any>>(base: T) {
 
 export function useFormix<
 	T extends FormSchemaBase,
-	U extends FormSchema<T>["FORM_SCHEMA"],
+	U extends FormSchema<T>[FormSchemaSymbol],
 	F extends U["fields"],
 	G extends U["groups"],
 	NF extends keyof F,
@@ -347,7 +348,7 @@ export function useFormix<
 
 export type UseFormixReturnType<
 	T extends FormSchemaBase,
-	U extends FormSchema<T>["FORM_SCHEMA"] = FormSchema<T>["FORM_SCHEMA"],
+	U extends FormSchema<T>[FormSchemaSymbol] = FormSchema<T>[FormSchemaSymbol],
 	F extends U["fields"] = U["fields"],
 	G extends U["groups"] = U["groups"],
 	NF extends keyof F = keyof F,

@@ -4,10 +4,10 @@
 	"description": "⚡ Fast, convenient and easy. Build forms in React with pleasure",
 	"source": "src/index.ts",
 	"main": "build/index.js",
-	"types": "build/index.d.ts",
+	"typings": "build/index.d.ts",
 	"scripts": {
 		"start": "parcel serve tests/index.html --open",
-		"build": "parcel build"
+		"build": "parcel build --no-cache && tsc -m es6 --outDir build"
 	},
 	"repository": {
 		"type": "git",

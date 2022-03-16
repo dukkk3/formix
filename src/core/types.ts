@@ -30,14 +30,14 @@ export type ConvertToFormPrimitiveValue<T extends any> = T extends any[]
 	: never;
 
 export type ConvertFieldToFormPrimitiveValue<T extends FieldSchema<any>> =
-	ConvertToFormPrimitiveValue<T["FIELD_SCHEMA"]["defaultValue"]>;
+	ConvertToFormPrimitiveValue<T[FieldSchemaSymbol]["defaultValue"]>;
 
 export type FieldSchema<T extends any> = {
-	[key in FieldSchemaSymbol]: FieldSchemaBase<T>;
+	[FIELD_SCHEMA_SYMBOL]: FieldSchemaBase<T>;
 };
 
 export type FormSchema<T extends FormSchemaBase> = {
-	[key in FormSchemaSymbol]: {
+	[FORM_SCHEMA_SYMBOL]: {
 		fields: {
 			[K in FormFieldPaths<T>]: DeepPropType<T, K> extends FieldSchema<any>
 				? DeepPropType<T, K>

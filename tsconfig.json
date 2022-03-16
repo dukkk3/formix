@@ -10,16 +10,18 @@
 		"forceConsistentCasingInFileNames": true,
 		"noFallthroughCasesInSwitch": true,
 		"module": "esnext",
+		"declaration": true,
+		"declarationMap": false,
 		"downlevelIteration": true,
 		"isolatedModules": true,
 		"moduleResolution": "node",
+		"emitDeclarationOnly": true,
 		"pretty": true,
 		"resolveJsonModule": true,
 		"strictNullChecks": true,
-		// "noEmit": true,
 		"keyofStringsOnly": true,
 		"experimentalDecorators": true,
 		"jsx": "react-jsx"
 	},
-	"include": ["src", "tests"]
+	"include": ["src"]
 }
