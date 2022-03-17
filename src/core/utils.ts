@@ -1,5 +1,5 @@
-export function deepObjectEntries<T extends Record<string, any>>(
-	object: T,
+export function deepObjectEntries(
+	object: Record<string, any>,
 	conditionFn?: (key: string, value: any) => boolean
 ) {
 	const keys = Object.keys(object);
@@ -72,8 +72,8 @@ export function isInputElement(element: Element): element is HTMLInputElement {
 	return element.tagName.toLocaleLowerCase() === "input";
 }
 
-export function mergeCallbacks<T extends Function>(...callbacks: (T | null | undefined)[]) {
-	const filteredCallbacks = callbacks.filter(Boolean) as T[];
+export function mergeCallbacks(...callbacks: (Function | null | undefined)[]) {
+	const filteredCallbacks = callbacks.filter(Boolean) as Function[];
 
 	if (filteredCallbacks.length === 0) {
 		return null;
@@ -84,4 +84,38 @@ export function mergeCallbacks<T extends Function>(...callbacks: (T | null | und
 			callback(...args);
 		}
 	};
+}
+
+export function unflattenObject(
+	object: Record<string, any>,
+	getValue?: (sourceKey: string) => any
+) {
+	const result = {} as Record<string, any>;
+	const keys = Object.keys(object);
+
+	let temp: Record<string, any>;
+	let substrings: string[];
+
+	for (const key of keys) {
+		substrings = key.split(".");
+		temp = result;
+
+		for (let i = 0; i < substrings.length - 1; i++) {
+			const substring = substrings[i];
+
+			if (!(substring in temp)) {
+				if (Number.isFinite(substrings[i + 1])) {
+					temp[substring] = [];
+				} else {
+					temp[substring] = {};
+				}
+			}
+
+			temp = temp[substring];
+		}
+
+		temp[substrings[substrings.length - 1]] = getValue ? getValue(key) : object[key];
+	}
+
+	return result;
 }

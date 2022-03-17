@@ -1,13 +1,13 @@
 {
 	"name": "react-formix",
-	"version": "1.1.6",
+	"version": "1.1.7",
 	"description": "⚡ Fast, convenient and easy. Build forms in React with pleasure",
 	"source": "src/index.ts",
 	"main": "build/index.js",
 	"typings": "build/index.d.ts",
 	"scripts": {
 		"start": "parcel serve tests/index.html --open",
-		"build": "parcel build --no-cache && tsc -m es6 --outDir build"
+		"build": "tsc"
 	},
 	"repository": {
 		"type": "git",
@@ -42,9 +42,9 @@
 		"eslint-config-react-app": "^7.0.0",
 		"joi": "^17.6.0",
 		"parcel": "^2.3.1",
-		"react-dom": "^17.0.2",
 		"typescript": "^4.5.5",
-		"yup": "^0.32.11"
+		"yup": "^0.32.11",
+		"react-dom": "^17.0.2"
 	},
 	"dependencies": {
 		"@types/joi": "^17.2.3",

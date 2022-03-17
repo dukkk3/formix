@@ -6,3 +6,5 @@ export { formSchema, field, validateFactory, fieldFactory, validationChain } fro
 
 export { fastestValidate } from "./core/validates/fastest.validate";
 export { joiValidate } from "./core/validates/joi.validator";
+
+export type { PickUnflattenSchema, PickFlattenSchema } from "./core/types";

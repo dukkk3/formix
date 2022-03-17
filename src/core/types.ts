@@ -10,7 +10,11 @@ export type FieldSchemaBase<T extends any> = {
 
 export type ValidateFn = (
 	value: FormValuePrimitive,
-	fieldName: string
+	meta: {
+		name: string;
+		getFlattenValues: <T>() => T;
+		getUnflattenValues: <T>() => T;
+	}
 	// error?: string
 ) => Promise<string> | string;
 export type FormSchemaBase = Record<string, any>;
@@ -66,10 +70,34 @@ export type RecordFields<T extends FormSchemaBase> = {
 
 export type AliasBase = Record<string, React.FC<any>>;
 
+type DeepSchemaConvertToPrimitiveValue<T> = T extends FormValuePrimitive
+	? ConvertToFormPrimitiveValue<T>
+	: T extends FieldSchema<infer R>
+	? ConvertToFormPrimitiveValue<R>
+	: T extends object
+	? { [K in keyof T]: DeepSchemaConvertToPrimitiveValue<T[K]> }
+	: never;
+
+export type PickUnflattenSchema<T> = T extends FormSchema<infer R>
+	? DeepSchemaConvertToPrimitiveValue<R>
+	: T extends FormSchemaBase
+	? DeepSchemaConvertToPrimitiveValue<T>
+	: never;
+
+export type PickFlattenSchema<T> = T extends FormSchema<any>
+	? {
+			[K in keyof T[FormSchemaSymbol]["fields"]]: ConvertFieldToFormPrimitiveValue<
+				T[FormSchemaSymbol]["fields"][K]
+			>;
+	  }
+	: T extends FormSchemaBase
+	? PickFlattenSchema<FormSchema<T>>
+	: never;
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type ArrayShift<T extends any[]> = T extends [infer _, ...infer Tail] ? Tail : never;
 
-type FormGroupPaths<T, D extends number = 5> = [D] extends [never]
+export type FormGroupPaths<T, D extends number = 3> = [D] extends [never]
 	? never
 	: T extends FormSchemaPrimitive
 	? ""
@@ -83,7 +111,7 @@ type FormGroupPaths<T, D extends number = 5> = [D] extends [never]
 	  }[keyof T]
 	: "";
 
-type FormFieldPaths<T, D extends number = 5> = [D] extends [never]
+export type FormFieldPaths<T, D extends number = 3> = [D] extends [never]
 	? never
 	: T extends FormSchemaPrimitive
 	? ""
@@ -91,7 +119,7 @@ type FormFieldPaths<T, D extends number = 5> = [D] extends [never]
 	? { [K in keyof T]-?: JoinKeys<K, FormFieldPaths<T[K], Prev[D]>> }[keyof T]
 	: "";
 
-type DeepPropType<T, P extends string> = string extends P
+export type DeepPropType<T, P extends string> = string extends P
 	? unknown
 	: P extends keyof T
 	? T[P]

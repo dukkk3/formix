@@ -18,6 +18,7 @@ import {
 	pickProperties,
 	removeDuplicateElements,
 	removeUnusedElement,
+	unflattenObject,
 } from "./utils";
 
 import type {
@@ -28,6 +29,7 @@ import type {
 	FieldSchemaBase,
 	FormSchemaSymbol,
 	FormValuePrimitive,
+	PickUnflattenSchema,
 	FormElementPrimitive,
 	ConvertFieldToFormPrimitiveValue,
 } from "./types";
@@ -162,11 +164,20 @@ export function useFormix<
 		[valuesStore]
 	);
 
+	const getUnflattenValues = useCallback(() => {
+		return unflattenObject(
+			defaultValues,
+			(key) => valuesStore[key as NF].value
+		) as PickUnflattenSchema<T>;
+	}, [defaultValues, valuesStore]);
+
 	const getValues = useCallback(() => {
 		return reduceFieldsNames<any>((acc, name) => ({
 			...acc,
 			[name]: getValue(name),
-		})) as { [K in NF]: ConvertFieldToFormPrimitiveValue<F[K]> };
+		})) as unknown as {
+			[K in NF]: ConvertFieldToFormPrimitiveValue<F[K]>;
+		};
 	}, [getValue, reduceFieldsNames]);
 
 	const setErrors = useCallback(
@@ -254,7 +265,11 @@ export function useFormix<
 
 			if (isValidatesNotEmpty) {
 				const validatesPromises = validatesKeys.map((name) =>
-					(filteredValidates[name] as ValidateFn)(valuesStore[name].value, name)
+					(filteredValidates[name] as ValidateFn)(valuesStore[name].value, {
+						name,
+						getFlattenValues: getValues as any,
+						getUnflattenValues: getUnflattenValues as any,
+					})
 				);
 				const validatesResults = (await Promise.allSettled(validatesPromises)) as {
 					reason?: string;
@@ -272,7 +287,7 @@ export function useFormix<
 
 			return {};
 		},
-		[fieldsNames, fieldsValidates, pickGroupSchema, valuesStore]
+		[fieldsNames, fieldsValidates, getUnflattenValues, getValues, pickGroupSchema, valuesStore]
 	);
 
 	const validate = useCallback(
@@ -340,6 +355,7 @@ export function useFormix<
 		setErrors,
 		getValue,
 		getValues,
+		getUnflattenValues,
 		setValue,
 		setValues,
 		validate,
@@ -373,6 +389,7 @@ export type UseFormixReturnType<
 	setError: (name: NF, error: string) => void;
 	setErrors: (errors: Partial<Record<NF, string>>) => void;
 	getValue: <N extends NF>(name: N) => ConvertFieldToFormPrimitiveValue<F[N]>;
+	getUnflattenValues: () => PickUnflattenSchema<T>;
 	getValues: () => { [K in NF]: ConvertFieldToFormPrimitiveValue<F[K]> };
 	setValue: <N extends NF, V extends ConvertFieldToFormPrimitiveValue<F[N]>>(
 		name: N,
@@ -384,7 +401,7 @@ export type UseFormixReturnType<
 	) => {
 		[K in keyof Omit<
 			UseFormixReturnType<T, U, F, G, N, NG>,
-			"$" | "getValues" | "getErrors" | "setErrors" | "setValues"
+			"$" | "getValues" | "getErrors" | "setErrors" | "setValues" | "getUnflattenValues"
 		>]: (
 			...params: ArrayShift<Parameters<UseFormixReturnType<T, U, F, G, N, NG>[K]>>
 		) => ReturnType<UseFormixReturnType<T, U, F, G, N, NG>[K]>;
