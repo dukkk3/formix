@@ -3,3 +3,5 @@
 /dist
 /build
 /tests
+.DS_Store
+**/.DS_Store

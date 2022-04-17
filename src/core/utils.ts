@@ -34,11 +34,13 @@ export function pickProperties<T, K extends keyof T>(object: T, ...keys: K[]) {
 	return Object.fromEntries(filteredEntries) as Pick<T, K>;
 }
 
-export function mergeRefs<E = Element>(...refs: (React.ForwardedRef<any> | null | undefined)[]) {
+export function mergeRefs<E extends Element>(
+	...refs: (React.ForwardedRef<any> | null | undefined)[]
+) {
 	const filteredRefs = refs.filter(Boolean);
 
 	if (filteredRefs.length === 0) {
-		return null;
+		return undefined;
 	}
 
 	return (instance: E | null) => {
@@ -76,7 +78,7 @@ export function mergeCallbacks(...callbacks: (Function | null | undefined)[]) {
 	const filteredCallbacks = callbacks.filter(Boolean) as Function[];
 
 	if (filteredCallbacks.length === 0) {
-		return null;
+		return undefined;
 	}
 
 	return (...args: any[]) => {

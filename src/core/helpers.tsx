@@ -9,7 +9,7 @@ import {
 	deepObjectEntries,
 	removeDuplicateElements,
 } from "./utils";
-import type {
+import {
 	AliasBase,
 	ValidateFn,
 	FormSchema,

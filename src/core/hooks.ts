@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useLocalObservable } from "mobx-react-lite";
+import { transaction } from "mobx";
 import isDeepEqual from "react-fast-compare";
 
 import { FORM_SCHEMA_SYMBOL, FIELD_SCHEMA_SYMBOL } from "../constants";
@@ -21,7 +22,7 @@ import {
 	unflattenObject,
 } from "./utils";
 
-import type {
+import {
 	ArrayShift,
 	ValidateFn,
 	FormSchema,
@@ -32,6 +33,7 @@ import type {
 	PickUnflattenSchema,
 	FormElementPrimitive,
 	ConvertFieldToFormPrimitiveValue,
+	FieldSchema,
 } from "./types";
 
 export function useLocalStore<T extends Record<string, any>>(base: T) {
@@ -134,13 +136,15 @@ export function useFormix<
 
 	const setValues = useCallback(
 		(values: Partial<{ [K in NF]: ConvertFieldToFormPrimitiveValue<F[K]> }>) => {
-			fieldsNames.forEach((name) => {
-				const value = values[name];
+			transaction(() => {
+				fieldsNames.forEach((name) => {
+					const value = values[name];
 
-				if (isFieldValuePrimitive(value)) {
-					valuesStore[name].set(value);
-					syncFormFields(name, value);
-				}
+					if (isFieldValuePrimitive(value)) {
+						valuesStore[name].set(value);
+						syncFormFields(name, value);
+					}
+				});
 			});
 		},
 		[fieldsNames, syncFormFields, valuesStore]
@@ -182,12 +186,14 @@ export function useFormix<
 
 	const setErrors = useCallback(
 		(errors: Partial<Record<NF, string>>) => {
-			fieldsNames.forEach((name) => {
-				const error = errors[name];
+			transaction(() => {
+				fieldsNames.forEach((name) => {
+					const error = errors[name];
 
-				if (typeof error === "string") {
-					errorsStore[name].set(error);
-				}
+					if (typeof error === "string") {
+						errorsStore[name].set(error);
+					}
+				});
 			});
 		},
 		[errorsStore, fieldsNames]
@@ -235,14 +241,12 @@ export function useFormix<
 			name: NF,
 			options?: Partial<{
 				ref: React.ForwardedRef<any>;
-				newName: string;
 				onChange: React.ChangeEventHandler<any>;
 			}>
 		) => {
 			return {
-				name: options?.newName || name,
-				ref: mergeRefs(createRefHandler(name), options?.ref) as any,
-				onChange: mergeCallbacks(createChangeHandler(name), options?.onChange) as any,
+				ref: mergeRefs(createRefHandler(name), options?.ref),
+				onChange: mergeCallbacks(createChangeHandler(name), options?.onChange),
 			};
 		},
 		[createChangeHandler, createRefHandler]
@@ -410,7 +414,7 @@ export type UseFormixReturnType<
 
 export function useField<T extends string, V extends FormValuePrimitive>(
 	name: T,
-	schemaOrDefaultValue: V | FieldSchemaBase<V>
+	schemaOrDefaultValue: V | FieldSchemaBase<V> | FieldSchema<V>
 ): ReturnType<UseFormixReturnType<{ [key in T]: V }>["$"]> {
 	const { $ } = useFormix({
 		[name]: isFieldValuePrimitive(schemaOrDefaultValue)
