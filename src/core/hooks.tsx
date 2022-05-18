@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { useLocalObservable } from "mobx-react-lite";
 import { transaction } from "mobx";
 import isDeepEqual from "react-fast-compare";
@@ -40,13 +40,15 @@ export function useLocalStore<T extends Record<string, any>>(base: T) {
 	return useLocalObservable(() => storeSchema(base));
 }
 
+const formContext = createContext<UseFormixReturnType<any>>(null!);
+
 export function useFormix<
 	T extends FormSchemaBase,
-	U extends FormSchema<T>[FormSchemaSymbol],
-	F extends U["fields"],
-	G extends U["groups"],
-	NF extends keyof F,
-	NG extends keyof G
+	U extends FormSchema<T>[FormSchemaSymbol] = FormSchema<T>[FormSchemaSymbol],
+	F extends U["fields"] = U["fields"],
+	G extends U["groups"] = U["groups"],
+	NF extends keyof F = keyof F,
+	NG extends keyof G = keyof G
 >(schema: T | FormSchema<T>) {
 	const schemaRef = useRef(schema);
 	const formElementsRef = useRef<Record<NF, FormElementPrimitive[]>>({} as any);
@@ -168,21 +170,24 @@ export function useFormix<
 		[valuesStore]
 	);
 
-	const getUnflattenValues = useCallback(() => {
-		return unflattenObject(
-			defaultValues,
-			(key) => valuesStore[key as NF].value
-		) as PickUnflattenSchema<T>;
-	}, [defaultValues, valuesStore]);
+	const getValues = useCallback(
+		(flatten: boolean = true) => {
+			if (flatten) {
+				return reduceFieldsNames<any>((acc, name) => ({
+					...acc,
+					[name]: getValue(name),
+				})) as unknown as {
+					[K in NF]: ConvertFieldToFormPrimitiveValue<F[K]>;
+				};
+			}
 
-	const getValues = useCallback(() => {
-		return reduceFieldsNames<any>((acc, name) => ({
-			...acc,
-			[name]: getValue(name),
-		})) as unknown as {
-			[K in NF]: ConvertFieldToFormPrimitiveValue<F[K]>;
-		};
-	}, [getValue, reduceFieldsNames]);
+			return unflattenObject(
+				defaultValues,
+				(key) => valuesStore[key as NF].value
+			) as PickUnflattenSchema<T>;
+		},
+		[defaultValues, getValue, reduceFieldsNames, valuesStore]
+	);
 
 	const setErrors = useCallback(
 		(errors: Partial<Record<NF, string>>) => {
@@ -239,10 +244,10 @@ export function useFormix<
 	const bind = useCallback(
 		(
 			name: NF,
-			options?: Partial<{
+			options: Partial<{
 				ref: React.ForwardedRef<any>;
 				onChange: React.ChangeEventHandler<any>;
-			}>
+			}> = {}
 		) => {
 			return {
 				ref: mergeRefs(createRefHandler(name), options?.ref),
@@ -271,8 +276,7 @@ export function useFormix<
 				const validatesPromises = validatesKeys.map((name) =>
 					(filteredValidates[name] as ValidateFn)(valuesStore[name].value, {
 						name,
-						getFlattenValues: getValues as any,
-						getUnflattenValues: getUnflattenValues as any,
+						getValues: getValues as any,
 					})
 				);
 				const validatesResults = (await Promise.allSettled(validatesPromises)) as {
@@ -291,7 +295,7 @@ export function useFormix<
 
 			return {};
 		},
-		[fieldsNames, fieldsValidates, getUnflattenValues, getValues, pickGroupSchema, valuesStore]
+		[fieldsNames, fieldsValidates, getValues, pickGroupSchema, valuesStore]
 	);
 
 	const validate = useCallback(
@@ -344,12 +348,8 @@ export function useFormix<
 		[bind, getError, getValue, isValid, setError, setValue, validate]
 	);
 
-	useEffect(() => {
-		setValues(defaultValues);
-		setErrors(defaultErrors);
-	}, [defaultErrors, defaultValues, setErrors, setValues]);
-
-	return {
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const methods = {
 		$,
 		bind,
 		isValid,
@@ -359,10 +359,26 @@ export function useFormix<
 		setErrors,
 		getValue,
 		getValues,
-		getUnflattenValues,
 		setValue,
 		setValues,
 		validate,
+	};
+
+	const ContextProvider: React.FC<React.PropsWithChildren<{}>> = useCallback(
+		({ children }) => {
+			return <formContext.Provider value={methods as any}>{children}</formContext.Provider>;
+		},
+		[methods]
+	);
+
+	useEffect(() => {
+		setValues(defaultValues);
+		setErrors(defaultErrors);
+	}, [defaultErrors, defaultValues, setErrors, setValues]);
+
+	return {
+		...methods,
+		ContextProvider,
 	};
 }
 
@@ -399,13 +415,20 @@ export type UseFormixReturnType<
 		name: N,
 		value: ((prevValue: V) => V) | V
 	) => void;
+	ContextProvider: React.FC<React.PropsWithChildren<{}>>;
 	setValues: (values: Partial<{ [K in NF]: ConvertFieldToFormPrimitiveValue<F[K]> }>) => void;
 	$: <N extends NF>(
 		name: N
 	) => {
 		[K in keyof Omit<
 			UseFormixReturnType<T, U, F, G, N, NG>,
-			"$" | "getValues" | "getErrors" | "setErrors" | "setValues" | "getUnflattenValues"
+			| "$"
+			| "getValues"
+			| "getErrors"
+			| "setErrors"
+			| "setValues"
+			| "getUnflattenValues"
+			| "ContextProvider"
 		>]: (
 			...params: ArrayShift<Parameters<UseFormixReturnType<T, U, F, G, N, NG>[K]>>
 		) => ReturnType<UseFormixReturnType<T, U, F, G, N, NG>[K]>;
@@ -423,4 +446,12 @@ export function useField<T extends string, V extends FormValuePrimitive>(
 	});
 
 	return $(name) as any;
+}
+
+export function useFormixContext<T extends FormSchemaBase = any>() {
+	const context = useContext(formContext) as unknown as Omit<
+		UseFormixReturnType<T>,
+		"ContextProvider"
+	>;
+	return context;
 }

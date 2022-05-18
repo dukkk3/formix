@@ -82,7 +82,7 @@ export function validateFactory<T extends any[]>(validateFn: (...args: T) => Val
 	return validateFn;
 }
 
-export function validationChain(...args: ValidateFn[]): ValidateFn {
+export function validationCompose(...args: ValidateFn[]): ValidateFn {
 	return async (value, fieldName) => {
 		let error: string = "";
 

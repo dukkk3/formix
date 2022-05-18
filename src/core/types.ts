@@ -12,8 +12,7 @@ export type ValidateFn = (
 	value: FormValuePrimitive,
 	meta: {
 		name: string;
-		getFlattenValues: <T>() => T;
-		getUnflattenValues: <T>() => T;
+		getValues: <T>(flatten?: boolean) => T;
 	}
 	// error?: string
 ) => Promise<string> | string;
