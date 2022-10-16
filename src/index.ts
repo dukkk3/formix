@@ -1,16 +1,7 @@
-export { Formix } from "./components/Formix";
-export { Field } from "./components/Field";
-
-export { useFormix, useField, useFormixContext } from "./core/hooks";
-export {
-	formSchema,
-	field,
-	validateFactory,
-	fieldFactory,
-	validationCompose,
-} from "./core/helpers";
+export { useFormix } from "./core/hooks/useFormix";
+export { useField } from "./core/hooks/useField";
 
 export { fastestValidate } from "./core/validates/fastest.validate";
-export { joiValidate } from "./core/validates/joi.validator";
+export { joiValidate } from "./core/validates/joi.validate";
 
-export type { PickUnflattenSchema, PickFlattenSchema } from "./core/types";
+export { Form } from "./components/Form";

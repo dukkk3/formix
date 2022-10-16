@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useRef } from "react";
-import { field, formSchema, useFormix } from "../src";
+import React, { useCallback } from "react";
+import { fastestValidate, useFormix, Form as FormImpl } from "../src";
 import { Observer } from "mobx-react-lite";
-import { reaction } from "mobx";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
@@ -10,167 +9,83 @@ export default {
 };
 
 function Form() {
-	const formix = useFormix({ user: { name: "" } });
+	const formix = useFormix(
+		{
+			user: { name: "" },
+			checked: false,
+			oneOf: "",
+			score: { min: 0, max: 0, current: 0 },
+			role: [] as string[],
+		},
+		{ formValidationDebounceTime: 100 }
+	);
+
+	const validate = useCallback(() => {
+		formix.validate();
+	}, [formix]);
 
 	return (
-		<form>
-			<input placeholder='name' {...formix.$("user.name").bind()} />
-			<Observer>{() => <p>username: {formix.$("user.name").getValue()}</p>}</Observer>
-		</form>
-	);
-}
-
-function FormWithValidation() {
-	const formix = useFormix({
-		user: {
-			name: field({
-				defaultValue: "",
-				validate: async (value, meta) => {
-					return typeof value === "string" && value.includes("admin") ? "Ah-ah" : "";
-				},
-			}),
-		},
-	});
-
-	const handleFormSubmit = useCallback(
-		async (event: React.FormEvent) => {
-			event.preventDefault();
-
-			const validationResult = await formix.validate("user.name");
-
-			if (validationResult) {
-				alert("Alright!");
-			} else {
-				alert(`Error: ${formix.getError("user.name")}`);
-			}
-		},
-		[formix]
-	);
-
-	return (
-		<form onSubmit={handleFormSubmit}>
-			<input placeholder='name' {...formix.$("user.name").bind()} />
-			<Observer>
-				{() =>
-					formix.$("user.name").getError() ? <p>Last error: {formix.$("user.name").getError()}</p> : null
-				}
-			</Observer>
-			<button type='submit'>Submit</button>
-		</form>
-	);
-}
-
-const userFormSchema = formSchema({
-	user: {
-		name: field({
-			defaultValue: "",
-			validate: async (value, meta) => {
-				return typeof value === "string" && value.includes("admin") ? "Ah-ah" : "";
-			},
-		}),
-		gender: "",
-		roles: [],
-		private: true,
-	},
-});
-
-function FormWithPreparedSchema() {
-	const formix = useFormix(userFormSchema);
-
-	const handleFormSubmit = useCallback(
-		async (event: React.FormEvent) => {
-			event.preventDefault();
-
-			const validationResult = await formix.validate("user.name");
-
-			if (validationResult) {
-				alert("Alright!");
-			} else {
-				alert(`Error: ${formix.getError("user.name")}`);
-			}
-		},
-		[formix]
-	);
-
-	return (
-		<form onSubmit={handleFormSubmit}>
-			<input placeholder='name' {...formix.$("user.name").bind()} />
-			<select {...formix.$("user.gender").bind()}>
-				<option value='Male'>Male</option>
-				<option value='Female'>Female</option>
-			</select>
-			<label>
-				<input type='checkbox' {...formix.bind("user.private")} />
-				Private?
-			</label>
+		<FormImpl onSubmit={validate}>
 			<div>
-				{["admin", "user", "owner"].map((role, index) => (
-					<label key={index}>
-						<input type='checkbox' value={role} {...formix.$("user.roles").bind()} />
-						{role}
-					</label>
-				))}
+				<input {...formix.bind("score.min")} type='number' min='0' />
+				<input {...formix.bind("score.max")} type='number' min='1' />
+				<Observer>
+					{() => (
+						<input
+							{...formix.bind("score.current", {
+								validate: fastestValidate(
+									`number|min:${formix.getValue("score.min")}|max:${formix.getValue("score.max")}`,
+									{ name: "score" }
+								),
+							})}
+							type='number'
+						/>
+					)}
+				</Observer>
+				<Observer>{() => <p>Error: {formix.getError("score.current")}</p>}</Observer>
 			</div>
-			<Observer>{() => <p>Your Name: {formix.$("user.name").getValue()}</p>}</Observer>
-			<Observer>{() => <p>Selected roles: {formix.getValue("user.roles").join(", ")}</p>}</Observer>
-			<Observer>{() => <p>Private: {formix.$("user.private").getValue() ? "Yes" : "No"}</p>}</Observer>
-			<button type='submit'>Submit</button>
-		</form>
-	);
-}
-
-function FormWithReaction() {
-	const formix = useFormix({ password: "" });
-	const formRef = useRef<HTMLFormElement>(null);
-
-	const submitForm = useCallback(() => {
-		const form = formRef.current;
-
-		if (!form) return;
-
-		form.submit();
-	}, []);
-
-	const checkForPasswordCorrect = useCallback((password: string) => {
-		if (password.length >= 10) {
-			console.log("Ok!");
-			// submitForm();
-		} else {
-			console.log("Invalid password");
-		}
-	}, []);
-
-	useEffect(
-		() =>
-			reaction(
-				() => formix.$("password").getValue(),
-				(password) => checkForPasswordCorrect(password)
-			),
-		[checkForPasswordCorrect, formix]
-	);
-
-	return (
-		<form ref={formRef}>
-			<input type='password' {...formix.$("password").bind()} />
-			<p>Min Length: 10</p>
-		</form>
+			<div>
+				<input
+					placeholder='name'
+					{...formix.bind("user.name", { validate: fastestValidate("string|empty:false") })}
+				/>
+				<Observer>{() => <p>Value: {formix.getValue("user.name")}</p>}</Observer>
+				<Observer>{() => <p>Error: {formix.getError("user.name")}</p>}</Observer>
+			</div>
+			<div>
+				<select {...formix.bind("role")} multiple>
+					<option value='admin'>Admin</option>
+					<option value='user'>User</option>
+				</select>
+				<Observer>{() => <p>Role: {formix.getValue("role")}</p>}</Observer>
+			</div>
+			<div>
+				<input {...formix.bind("oneOf")} type='radio' value='a' radioGroup='one-of' name='one-of' />
+				<input {...formix.bind("oneOf")} type='radio' value='b' radioGroup='one-of' name='one-of' />
+				<input {...formix.bind("oneOf")} type='radio' value='c' radioGroup='one-of' name='one-of' />
+				<Observer>{() => <p>One of: {formix.getValue("oneOf")}</p>}</Observer>
+			</div>
+			<div>
+				<input type='checkbox' {...formix.bind("checked")} />
+				<Observer>{() => <p>Checked: {String(formix.getValue("checked"))}</p>}</Observer>
+			</div>
+			<Observer>
+				{() => (
+					<div
+						style={{
+							width: 100,
+							height: 100,
+							background: formix.getIsFormValid() ? "green" : "red",
+						}}></div>
+				)}
+			</Observer>
+			<button type='submit'>Validate</button>
+		</FormImpl>
 	);
 }
 
 export const FormSt = () => <Form />;
-export const FormWithValidationSt = () => <FormWithValidation />;
-export const FormWithPreparedSchemaSt = () => <FormWithPreparedSchema />;
-export const FormWithReactionSt = () => <FormWithReaction />;
 
 FormSt.story = {
 	name: "Default",
-};
-FormWithValidationSt.story = {
-	name: "Validation",
-};
-FormWithPreparedSchemaSt.story = {
-	name: "Prepared Schema",
-};
-FormWithReactionSt.story = {
-	name: "With Reaction",
 };
