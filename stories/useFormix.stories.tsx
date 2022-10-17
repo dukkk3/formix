@@ -1,6 +1,7 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { fastestValidate, useFormix, Form as FormImpl } from "../src";
 import { Observer } from "mobx-react-lite";
+import { reaction } from "mobx";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
@@ -22,6 +23,7 @@ function Form() {
 
 	const validate = useCallback(() => {
 		formix.validate();
+		formix.setValue("user.name", "changed");
 	}, [formix]);
 
 	return (
@@ -45,6 +47,10 @@ function Form() {
 				<Observer>{() => <p>Error: {formix.getError("score.current")}</p>}</Observer>
 			</div>
 			<div>
+				<input
+					placeholder='name'
+					{...formix.bind("user.name", { validate: fastestValidate("string|empty:false") })}
+				/>
 				<input
 					placeholder='name'
 					{...formix.bind("user.name", { validate: fastestValidate("string|empty:false") })}

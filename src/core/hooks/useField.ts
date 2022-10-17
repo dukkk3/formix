@@ -1,24 +1,30 @@
 import { useMemo } from "react";
 
 import { FormixOptions, useFormix, UseFormixReturnType } from "./useFormix";
-import { ArrayShift, FormValuePrimitive } from "../types";
+import { ArrayShift, ValidateFn } from "../types";
 
-type FieldSchema<T extends FormValuePrimitive> = { field: T };
+type FieldSchema<T> = { field: T };
 
-export type UseFieldReturnType<T extends FormValuePrimitive> = {
+export type UseFieldReturnType<T> = {
 	[K in keyof Omit<
 		UseFormixReturnType<FieldSchema<T>>,
-		"getErrors" | "getError" | "getValues" | "setValues"
+		"getErrors" | "getError" | "getValues" | "setValues" | "setErrors"
 	>]: (
 		...params: ArrayShift<Parameters<UseFormixReturnType<FieldSchema<T>>[K]>>
 	) => ReturnType<UseFormixReturnType<FieldSchema<T>>[K]>;
 };
 
-export function useField<T extends FormValuePrimitive>(
+export function useField<T>(
 	value: T,
-	options?: FormixOptions
+	{
+		validate,
+		...options
+	}: Omit<FormixOptions<FieldSchema<T>>, "validates"> & { validate?: ValidateFn } = {}
 ): UseFieldReturnType<T> {
-	const formix = useFormix<FieldSchema<any>>({ field: value }, options);
+	const formix = useFormix<FieldSchema<any>>(
+		{ field: value },
+		{ ...options, validates: { field: validate ?? null } }
+	);
 
 	return useMemo(
 		() => ({

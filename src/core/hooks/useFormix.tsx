@@ -37,10 +37,11 @@ interface BindOptions {
 	onChange?: React.ChangeEventHandler<FormElementPrimitive>;
 }
 
-export interface FormixOptions {
+export interface FormixOptions<T extends FormSchema> {
 	validateAfterMount?: boolean;
 	resetErrorAfterInput?: boolean;
-	formValidationDebounceTime: number;
+	formValidationDebounceTime?: number;
+	validates?: Partial<Record<keyof Fields<T>, ValidateFn | null>>;
 }
 
 export interface UseFormixReturnType<T extends FormSchema> {
@@ -55,6 +56,7 @@ export interface UseFormixReturnType<T extends FormSchema> {
 	getValues(): Fields<T>;
 	getValue<N extends keyof Fields<T>>(name: N): Fields<T>[N];
 	setValue<N extends keyof Fields<T>>(name: N, value: WithPrev<Fields<T>[N]>): void;
+	setErrors(errors: Partial<Record<keyof Fields<T>, string>>): void;
 	validate(target?: keyof Groups<T>): Promise<boolean>;
 	isValid(target?: keyof Groups<T>): Promise<boolean>;
 	setError(name: keyof Fields<T>, error: string): void;
@@ -71,7 +73,12 @@ const formixContext = createContext<Omit<UseFormixReturnType<any>, "ContextProvi
 
 export function useFormix<T extends FormSchema>(
 	schema: T,
-	formixOptions: FormixOptions = { resetErrorAfterInput: true, formValidationDebounceTime: 0 }
+	{
+		validateAfterMount = true,
+		resetErrorAfterInput = true,
+		formValidationDebounceTime = 100,
+		validates = {},
+	}: FormixOptions<T> = {}
 ): UseFormixReturnType<T> {
 	const previousSchema = usePrevious(schema);
 	const compiledSchema = useMemo<CompiledFormSchema<T>>(() => compileFormSchema(schema), [schema]);
@@ -81,11 +88,11 @@ export function useFormix<T extends FormSchema>(
 
 	const fieldsNames = useMemo(() => Object.keys(fields), [fields]);
 
-	const validatorsRef = useRef<Record<string, ValidateFn | null>>({});
+	const validatorsRef = useRef<Record<string, ValidateFn | null>>(validates as any);
 	const formElementsRef = useRef<Record<string, FormElementPrimitive[] | null>>({});
 
 	const localStore = useLocalStore<Store>({
-		values: fields,
+		values: { ...fields },
 		errors: {},
 		isFormValid: false,
 		setValue(name, value) {
@@ -113,26 +120,8 @@ export function useFormix<T extends FormSchema>(
 	);
 
 	const getValues = useCallback((): Fields<T> => {
-		return localStore.values as any;
+		return { ...localStore.values } as any;
 	}, [localStore.values]);
-
-	const setValue = useCallback(
-		<N extends keyof Fields<T>>(name: N, valueOrCallback: WithPrev<Fields<T>[N]>): void => {
-			const value = common.isFunction(valueOrCallback)
-				? valueOrCallback(getValue(name))
-				: valueOrCallback;
-			localStore.setValue(name, value);
-		},
-		[getValue, localStore]
-	);
-
-	const setValues = useCallback(
-		(values: Partial<FormSchema>) => {
-			const schemaWithUpdatedValues = compileFormSchema(values).fields;
-			localStore.setValues({ ...localStore.values, ...schemaWithUpdatedValues });
-		},
-		[localStore]
-	);
 
 	const connectFormElement = useCallback(
 		(name: string, element: FormElementPrimitive | null): void => {
@@ -164,6 +153,37 @@ export function useFormix<T extends FormSchema>(
 		}
 	}, []);
 
+	const setValue = useCallback(
+		<N extends keyof Fields<T>>(
+			name: N,
+			valueOrCallback: WithPrev<Fields<T>[N]>,
+			sync: boolean = true
+		): void => {
+			const value = common.isFunction(valueOrCallback)
+				? valueOrCallback(getValue(name))
+				: valueOrCallback;
+			localStore.setValue(name, value);
+
+			if (sync) {
+				syncFormFields(name, value);
+			}
+		},
+		[getValue, localStore, syncFormFields]
+	);
+
+	const setValues = useCallback(
+		(values: Partial<FormSchema>, sync: boolean = true) => {
+			const schemaWithUpdatedValues = compileFormSchema(values).fields;
+			localStore.setValues({ ...localStore.values, ...schemaWithUpdatedValues });
+
+			if (sync) {
+				const keys = Object.keys(schemaWithUpdatedValues);
+				keys.forEach((key) => syncFormFields(key, schemaWithUpdatedValues[key]));
+			}
+		},
+		[localStore, syncFormFields]
+	);
+
 	const setError = useCallback(
 		(name: keyof Fields<T>, error: string): void => {
 			localStore.setError(name, error);
@@ -181,36 +201,36 @@ export function useFormix<T extends FormSchema>(
 	const bind = useCallback(
 		(name: keyof Fields<T>, options: BindOptions = {}) => {
 			return {
-				ref: common.mergeRefs(options.ref, (element: FormElementPrimitive | null) => {
+				ref: common.mergeRefs((element: FormElementPrimitive | null) => {
 					if (options.validate && element) {
 						validatorsRef.current[name] = options.validate;
-					} else {
+					} else if (!validatorsRef.current[name]) {
 						validatorsRef.current[name] = null;
+					} else {
+						validatorsRef.current[name] = validates[name] ?? null;
 					}
 
 					connectFormElement(name, element);
 					syncFormFields(name, getValue(name));
-				}),
-				onChange: common.mergeCallbacks(
-					options.onChange,
-					(event: React.ChangeEvent<FormElementPrimitive>) => {
-						const field = event.target;
-						const value = collectFieldsValues(field, getValue(name));
+				}, options.ref),
+				onChange: common.mergeCallbacks((event: React.ChangeEvent<FormElementPrimitive>) => {
+					const field = event.target;
+					const value = collectFieldsValues(field, getValue(name));
 
-						if (formixOptions.resetErrorAfterInput) {
-							setError(name, "");
-						}
-
-						setValue(name, value as any);
+					if (resetErrorAfterInput) {
+						setError(name, "");
 					}
-				),
+
+					setValue(name, value as any);
+				}, options.onChange),
 			};
 		},
 		[
 			connectFormElement,
 			syncFormFields,
 			getValue,
-			formixOptions.resetErrorAfterInput,
+			validates,
+			resetErrorAfterInput,
 			setValue,
 			setError,
 		]
@@ -284,6 +304,13 @@ export function useFormix<T extends FormSchema>(
 		[getValidationErrors]
 	);
 
+	const setErrors = useCallback(
+		(errors: Partial<Record<keyof Fields<T>, string>>): void => {
+			localStore.setErrors({ ...localStore.errors, ...errors });
+		},
+		[localStore]
+	);
+
 	const resetErrors = useCallback(
 		(target?: keyof Groups<T>): void => {
 			const fields = target ? groups[target] : fieldsNames;
@@ -311,12 +338,16 @@ export function useFormix<T extends FormSchema>(
 		[getError]
 	);
 
-	const autoValidation = useDebounce(async () => {
-		if (formixOptions.formValidationDebounceTime) {
-			const valid = await isValid();
-			localStore.setIsFormValid(valid);
+	const updateIsFormValid = useCallback(async () => {
+		const valid = await isValid();
+		localStore.setIsFormValid(valid);
+	}, [isValid, localStore]);
+
+	const autoValidation = useDebounce(() => {
+		if (formValidationDebounceTime) {
+			updateIsFormValid();
 		}
-	}, formixOptions.formValidationDebounceTime);
+	}, formValidationDebounceTime);
 
 	const getIsFormValid = useCallback(() => {
 		return localStore.isFormValid;
@@ -329,12 +360,16 @@ export function useFormix<T extends FormSchema>(
 	}, [schema, previousSchema, reset]);
 
 	useEffect(() => {
-		if (formixOptions.validateAfterMount) {
+		if (validateAfterMount) {
 			validate();
+			updateIsFormValid();
 		}
-	}, [formixOptions.validateAfterMount, validate]);
+	}, [validateAfterMount, validate, autoValidation, updateIsFormValid]);
 
-	useEffect(() => reaction(() => localStore.values, autoValidation), [autoValidation, localStore]);
+	useEffect(
+		() => reaction(() => getValues(), autoValidation),
+		[autoValidation, getValues, localStore]
+	);
 
 	const formixInterface = useMemo<Omit<UseFormixReturnType<T>, "ContextProvider">>(
 		() => ({
@@ -343,6 +378,7 @@ export function useFormix<T extends FormSchema>(
 			getValue,
 			getValues,
 			setValues,
+			setErrors,
 			validate,
 			reset,
 			isValid,
@@ -365,6 +401,7 @@ export function useFormix<T extends FormSchema>(
 			resetErrors,
 			resetValues,
 			setError,
+			setErrors,
 			setValue,
 			setValues,
 			validate,
