@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { fastestValidate, useFormix, Form as FormImpl } from "../src";
-import { Observer } from "mobx-react-lite";
+import { Observer, useLocalObservable } from "mobx-react-lite";
 import { reaction } from "mobx";
+import { usePrevious } from "../src/core/hooks/usePrevious";
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
@@ -90,8 +91,59 @@ function Form() {
 	);
 }
 
+function Form2() {
+	const [value, setValue] = useState(0);
+	const [pending, setPending] = useState(false);
+
+	const updateState = useCallback(() => {
+		// setValue(Math.random() > 0.5 ? 1 : 0);
+		setPending((prev) => !prev);
+	}, []);
+
+	return (
+		<>
+			<div>
+				<Form3 value={value} pending={pending} />
+			</div>
+			<button type='button' onClick={updateState}>
+				Generate
+			</button>
+		</>
+	);
+}
+
+function Form3({ value, pending }: { value: number; pending?: boolean }) {
+	const form = useFormix({ value });
+	const prev = usePrevious(form);
+
+	const k = Object.keys(form);
+
+	console.log(
+		"forms equals: ",
+		form === prev,
+		k.reduce(
+			(acc, key) => ({
+				...acc,
+				[key]: form[key] === prev[key],
+			}),
+			{}
+		)
+	);
+	return (
+		<>
+			<input {...form.bind("value")} />
+			<Observer>{() => <p>Is Valid: {String(form.getIsFormValid())}</p>}</Observer>
+		</>
+	);
+}
+
 export const FormSt = () => <Form />;
+export const Form2St = () => <Form2 />;
 
 FormSt.story = {
 	name: "Default",
+};
+
+Form2St.story = {
+	name: "Default 2",
 };

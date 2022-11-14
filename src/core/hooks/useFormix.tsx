@@ -71,6 +71,8 @@ export interface UseFormixReturnType<T extends FormSchema> {
 
 const formixContext = createContext<Omit<UseFormixReturnType<any>, "ContextProvider">>(null!);
 
+const delimiter = "%%$$%%";
+
 export function useFormix<T extends FormSchema>(
 	schema: T,
 	{
@@ -81,13 +83,26 @@ export function useFormix<T extends FormSchema>(
 	}: FormixOptions<T> = {}
 ): UseFormixReturnType<T> {
 	const previousSchema = usePrevious(schema);
-	const compiledSchema = useMemo<CompiledFormSchema<T>>(() => compileFormSchema(schema), [schema]);
+	const cachedCompiledSchemaRef = useRef<CompiledFormSchema<T> | null>(null);
+	const compiledSchema = useMemo<CompiledFormSchema<T>>(() => {
+		const areEqual = isEqual(previousSchema, schema);
+		let compiledSchema: CompiledFormSchema<T> | null = cachedCompiledSchemaRef.current;
+
+		if (!compiledSchema || !areEqual) {
+			compiledSchema = compileFormSchema(schema);
+			cachedCompiledSchemaRef.current = compiledSchema;
+		}
+
+		return compiledSchema!;
+	}, [previousSchema, schema]);
 
 	const fields = compiledSchema.fields;
 	const groups = compiledSchema.groups;
 
-	const fieldsNames = useMemo(() => Object.keys(fields), [fields]);
+	const fieldsHash = useMemo(() => Object.keys(fields).join(delimiter), [fields]);
+	const fieldsNames = useMemo(() => fieldsHash.split(delimiter), [fieldsHash]);
 
+	const validatesRef = useRef<Partial<Record<keyof Fields<T>, ValidateFn | null>>>(validates);
 	const validatorsRef = useRef<Record<string, ValidateFn | null>>(validates as any);
 	const formElementsRef = useRef<Record<string, FormElementPrimitive[] | null>>({});
 
@@ -116,12 +131,12 @@ export function useFormix<T extends FormSchema>(
 		<N extends keyof Fields<T>>(name: N): Fields<T>[N] => {
 			return localStore.values[name] ?? "";
 		},
-		[localStore.values]
+		[localStore]
 	);
 
 	const getValues = useCallback((): Fields<T> => {
 		return { ...localStore.values } as any;
-	}, [localStore.values]);
+	}, [localStore]);
 
 	const connectFormElement = useCallback(
 		(name: string, element: FormElementPrimitive | null): void => {
@@ -193,26 +208,26 @@ export function useFormix<T extends FormSchema>(
 
 	const getError = useCallback(
 		(name: keyof Fields<T>): string => {
-			return localStore.errors[name] ?? "";
+			return { ...localStore.errors }[name] ?? "";
 		},
-		[localStore.errors]
+		[localStore]
 	);
 
 	const bind = useCallback(
 		(name: keyof Fields<T>, options: BindOptions = {}) => {
 			return {
-				ref: common.mergeRefs((element: FormElementPrimitive | null) => {
+				ref: common.mergeRefs(options.ref, (element: FormElementPrimitive | null) => {
 					if (options.validate && element) {
 						validatorsRef.current[name] = options.validate;
 					} else if (!validatorsRef.current[name]) {
 						validatorsRef.current[name] = null;
 					} else {
-						validatorsRef.current[name] = validates[name] ?? null;
+						validatorsRef.current[name] = validatesRef.current[name] ?? null;
 					}
 
 					connectFormElement(name, element);
 					syncFormFields(name, getValue(name));
-				}, options.ref),
+				}),
 				onChange: common.mergeCallbacks((event: React.ChangeEvent<FormElementPrimitive>) => {
 					const field = event.target;
 					const value = collectFieldsValues(field, getValue(name));
@@ -225,15 +240,7 @@ export function useFormix<T extends FormSchema>(
 				}, options.onChange),
 			};
 		},
-		[
-			connectFormElement,
-			syncFormFields,
-			getValue,
-			validates,
-			resetErrorAfterInput,
-			setValue,
-			setError,
-		]
+		[connectFormElement, syncFormFields, getValue, resetErrorAfterInput, setValue, setError]
 	);
 
 	const getValidationErrors = useCallback(
@@ -323,8 +330,8 @@ export function useFormix<T extends FormSchema>(
 	);
 
 	const resetValues = useCallback((): void => {
-		localStore.setValues(fields);
-	}, [fields, localStore]);
+		setValues(fields);
+	}, [fields, setValues]);
 
 	const reset = useCallback((): void => {
 		resetValues();
@@ -343,15 +350,15 @@ export function useFormix<T extends FormSchema>(
 		localStore.setIsFormValid(valid);
 	}, [isValid, localStore]);
 
-	const autoValidation = useDebounce(() => {
-		if (formValidationDebounceTime) {
-			updateIsFormValid();
-		}
-	}, formValidationDebounceTime);
+	const updateIsFormValidDebounced = useDebounce(updateIsFormValid, formValidationDebounceTime);
 
 	const getIsFormValid = useCallback(() => {
 		return localStore.isFormValid;
 	}, [localStore]);
+
+	useEffect(() => {
+		validatesRef.current = validates;
+	}, [validates]);
 
 	useEffect(() => {
 		if (!isEqual(schema, previousSchema)) {
@@ -364,11 +371,11 @@ export function useFormix<T extends FormSchema>(
 			validate();
 			updateIsFormValid();
 		}
-	}, [validateAfterMount, validate, autoValidation, updateIsFormValid]);
+	}, [validateAfterMount, validate, updateIsFormValid]);
 
 	useEffect(
-		() => reaction(() => getValues(), autoValidation),
-		[autoValidation, getValues, localStore]
+		() => reaction(() => getValues(), updateIsFormValidDebounced),
+		[updateIsFormValidDebounced, getValues, localStore]
 	);
 
 	const formixInterface = useMemo<Omit<UseFormixReturnType<T>, "ContextProvider">>(
@@ -415,7 +422,10 @@ export function useFormix<T extends FormSchema>(
 		[formixInterface]
 	);
 
-	return { ...formixInterface, ContextProvider };
+	return useMemo(
+		() => ({ ...formixInterface, ContextProvider }),
+		[formixInterface, ContextProvider]
+	);
 }
 
 export function useFormixContext<T extends FormSchema = any>() {

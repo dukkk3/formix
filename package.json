@@ -1,6 +1,6 @@
 {
 	"name": "react-formix",
-	"version": "1.5.6",
+	"version": "1.5.15",
 	"description": "⚡ Fast, convenient and easy. Build forms in React with pleasure",
 	"main": "dist/index.js",
 	"typings": "dist/index.d.ts",
